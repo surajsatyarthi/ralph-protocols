@@ -1,5 +1,5 @@
-# ANTIGRAVITY PROTOCOLS
-**Centralized Quality Standards for Antigravity Projects**
+# RALPH PROTOCOLS
+**Centralized Quality Standards for All Projects**
 
 **Updated**: 2026-02-12
 **Version**: 3.0 (Sync System Edition)
@@ -15,7 +15,7 @@ This is the **central source of truth** for quality protocols used across all An
 
 **Structure**:
 ```
-GitHub: antigravity-protocols (this repo)
+GitHub: ralph-protocols (this repo)
    ↓ sync
 Project 1/.agent/ ← Synced protocols
 Project 2/.agent/ ← Synced protocols
@@ -140,7 +140,7 @@ protocol/
 ## 🔄 HOW THE SYNC SYSTEM WORKS
 
 ### Central Repository (This GitHub Repo)
-- **URL**: `https://github.com/YOUR_USERNAME/antigravity-protocols`
+- **URL**: `https://github.com/YOUR_USERNAME/ralph-protocols`
 - **Branch**: `main` (single branch, always production-ready)
 - **Updates**: Edit here → Push to GitHub → Sync to all projects
 
@@ -319,6 +319,6 @@ A: Force refresh: `rm -rf .protocol-cache && npm run sync:protocols:init`
 ---
 
 **Last Updated**: 2026-02-12
-**Repository**: https://github.com/YOUR_USERNAME/antigravity-protocols
+**Repository**: https://github.com/YOUR_USERNAME/ralph-protocols
 **Status**: Production-Ready (Centralized Sync System)
 **Maintenance**: Update here → Sync to all projects
