@@ -1,0 +1,33 @@
+{
+  "name": "your-project-name",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "// Ralph Protocol v6.5 - Phase 1 Enforcement": "",
+    "predev": "npm run validate:env",
+    "dev": "next dev",
+    "prebuild": "npm run validate:env",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "validate:env": "tsx scripts/validate-env.ts",
+    "validate:env:production": "tsx scripts/validate-env.ts --environment=production",
+    "validate:env:skip-network": "tsx scripts/validate-env.ts --skip-connectivity",
+    "// Phase 2 Scripts (Coming Soon)": "",
+    "gate:start": "echo '🚧 Phase 2: Coming soon - gate enforcement'",
+    "gate:debug": "echo '🚧 Phase 2: Coming soon - debug report generation'"
+  },
+  "dependencies": {
+    "next": "^14.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  }
+}
