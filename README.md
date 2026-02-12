@@ -1,339 +1,302 @@
-# ALPHA - Reusable Project Protocols
-**PM ↔ Coder Accountability System**
+# ANTIGRAVITY PROTOCOLS
+**Centralized Quality Standards for Antigravity Projects**
 
 **Updated**: 2026-02-12
-**Version**: 2.1 (Shareable Prompts Edition)
+**Version**: 3.0 (Sync System Edition)
 **Status**: Production-Ready
 
 ---
 
-## 🚨 FOR AI CODERS AND PMs: MIGRATE YOUR PROJECTS
+## 🎯 WHAT IS THIS?
 
-**Old protocols have been removed.** All projects must migrate to Circular Enforcement v2.0.
+This is the **central source of truth** for quality protocols used across all Antigravity projects.
 
-### Quick Migration (5 Minutes)
+**Purpose**: Maintain ONE protocol repository on GitHub → Auto-sync to all projects
 
-```bash
-# Go to alpha folder
-cd ~/Desktop/alpha
-
-# Read migration guide
-cat MIGRATION_PROMPT.md
-
-# Run migration script
-bash MIGRATE_PROJECT.sh /path/to/your-project
-
-# Test verification
-cd /path/to/your-project
-npm run verify:pm-gates -- ENTRY-001
+**Structure**:
 ```
-
-**See**: [MIGRATION_PROMPT.md](MIGRATION_PROMPT.md) for complete instructions
+GitHub: antigravity-protocols (this repo)
+   ↓ sync
+Project 1/.agent/ ← Synced protocols
+Project 2/.agent/ ← Synced protocols
+Project 3/.agent/ ← Synced protocols
+Project 4/.agent/ ← Synced protocols
+Project 5/.agent/ ← Synced protocols
+```
 
 ---
 
-## 🎯 WHAT'S NEW (v2.1 - 2026-02-12)
+## 🚀 QUICK START
 
-### ✅ Added: Mandatory Shareable Prompts (v2.1 - Latest Update)
-**Problem solved**: CEO had to parse long PM/Coder messages to figure out what to relay
-**Solution**: PM and Coder MUST end every message with "📋 SHAREABLE PROMPT FOR CEO" section
-**Result**: CEO just copy-pastes the prompt (5 seconds, zero interpretation needed)
+### For Projects Using These Protocols
 
-### ✅ Added: Circular Enforcement System (v2.0)
-**Problem solved**: PM self-enforcement failed → Made recommendations without codebase audit, didn't document tasks
-**Solution**: Mechanical PM ↔ Coder mutual verification - neither can bypass quality gates
+**Sync latest protocols to your project**:
+```bash
+npm run sync:protocols
+```
 
-### ❌ Removed: Old Protocol Files
-- Old PM_PROTOCOL.md (replaced with v3.0 including Gate 8)
-- Old RALPH_PROTOCOL.md (replaced with v6.5 including sequential enforcement)
-- Old QA_PROTOCOL.md (archived)
-- Old STANDING_ORDERS.md (archived)
-- Old WORKFLOW.md (archived)
+**First-time setup** (new project):
+```bash
+npm run sync:protocols:init
+```
 
-### 📦 New Files
-1. **RALPH_PROTOCOL.md** (v6.5) - 12 quality gates with mechanical enforcement
-2. **PM_PROTOCOL.md** (v3.0) - 8 strategic gates including Gate 8 (accountability)
-3. **CIRCULAR_ENFORCEMENT.md** - Complete workflow documentation + shareable prompts
-4. **COMMUNICATION_PROTOCOL.md** - CEO ↔ PM ↔ Coder messaging with shareable prompt examples
-5. **CIRCULAR_ENFORCEMENT_SETUP.md** - Implementation guide for any project
-6. **verification-scripts/** - 3 verification scripts (12KB)
+**See complete setup guide**: Each project has `PROTOCOL_SYNC_SETUP.md`
 
 ---
 
-## 🚀 QUICK START (5 Minutes)
+## 📖 CORE PROTOCOLS
 
-### For New Projects
+### 1. **RALPH_PROTOCOL.md** (12 Gates - Technical Quality)
+- Build compilation (0 errors)
+- TypeScript validation (0 type errors)
+- Console cleanliness (0 errors/warnings)
+- Logic correctness
+- Database query optimization (no N+1)
+- Performance (<2s page load)
+- Mobile responsiveness (375px, 768px, 1024px)
+- Security (XSS, SQL injection, CSRF prevention)
+- Error handling (graceful failures)
+- Code style consistency
+- Test coverage (unit + integration)
+- CI/CD readiness
 
-```bash
-# 1. Copy files to your project
-cp ~/Desktop/alpha/verification-scripts/*.js ./scripts/
-cp ~/Desktop/alpha/RALPH_PROTOCOL.md ./.agent/
-cp ~/Desktop/alpha/PM_PROTOCOL.md ./.agent/
-cp ~/Desktop/alpha/CIRCULAR_ENFORCEMENT.md ./docs/
+**When to Use**: Every code submission, always required
 
-# 2. Make scripts executable
-chmod +x scripts/verify-*.js
+---
 
-# 3. Add to package.json scripts section:
-# "verify:pm-gates": "node scripts/verify-pm-gates.js",
-# "verify:ralph-gates": "node scripts/verify-ralph-gates.js",
-# "verify:pm-documentation": "node scripts/verify-pm-documentation.js"
+### 2. **PM_PROTOCOL.md** (7 Gates - Strategic Validation)
+- Strategic alignment (Antigravity IDE focus)
+- Product-market fit (user research validated)
+- Monetization model (revenue stream assigned)
+- SEO impact (indexed pages, keywords, traffic)
+- Virality (product) - growth mechanics, retention hooks
+- Virality (engineering) - analytics tracking
+- MRR validation (revenue math verified)
 
-# 4. Test verification
-npm run verify:pm-gates -- ENTRY-001
-```
+**When to Use**: User-facing features, monetization changes, major product changes
 
-### For Existing Projects
+---
 
-Read **CIRCULAR_ENFORCEMENT_SETUP.md** for full implementation guide.
+### 3. **COMMUNICATION_PROTOCOL.md** (CEO Relay System)
+- Ledger-based communication (PROJECT_LEDGER.md)
+- Shareable prompts (Rule 5 - mandatory)
+- PM ↔ CEO ↔ Coder relay system
+- Timestamp format standards
+- Evidence requirements
+
+**When to Use**: All PM-Coder communication
+
+---
+
+### 4. **CIRCULAR_ENFORCEMENT.md** (Accountability System)
+- PM verification gates (Coder blocks if PM didn't research)
+- Ralph verification gates (PM blocks if quality fails)
+- Documentation verification (Coder blocks if PM didn't document)
+- State machine transitions
+- Verification commands (`npm run verify:*`)
+
+**When to Use**: Task transitions, approvals, handoffs
+
+---
+
+### 5. **SHAREABLE_PROMPTS_GUIDE.md** (Rule 5 Implementation)
+- Prompt format requirements
+- Templates for common scenarios
+- CEO relay instructions
+- Examples and anti-patterns
+
+**When to Use**: Every message sent to CEO for relay
 
 ---
 
 ## 📁 FOLDER STRUCTURE
 
 ```
-alpha/
-├── README.md                              ← You are here
-├── CIRCULAR_ENFORCEMENT_SETUP.md          ← START HERE for implementation
-├── SHAREABLE_PROMPTS_GUIDE.md             ← NEW: Mandatory CEO messaging format
-├── COMMUNICATION_PROTOCOL.md              ← CEO ↔ PM ↔ Coder messaging workflows
-├── RALPH_PROTOCOL.md                      ← 12 quality gates (v6.5)
-├── PM_PROTOCOL.md                         ← 8 strategic gates (v3.0 - includes Gate 8)
-├── CIRCULAR_ENFORCEMENT.md                ← Workflow documentation with shareable prompts
+protocol/
+├── README.md                         ← You are here
+├── RALPH_PROTOCOL.md                 ← 12 quality gates
+├── PM_PROTOCOL.md                    ← 7 strategic gates
+├── COMMUNICATION_PROTOCOL.md         ← CEO ↔ PM ↔ Coder messaging
+├── CIRCULAR_ENFORCEMENT.md           ← Workflow documentation
+├── CIRCULAR_ENFORCEMENT_SETUP.md     ← Implementation guide
+├── SHAREABLE_PROMPTS_GUIDE.md        ← Rule 5 (mandatory prompts)
+├── PROMPT_FOR_AI_CODERS.md           ← Quick reference
+├── AI_CODER_ADAPTATION_GUIDE.md      ← Detailed AI coder guidance
 ├── verification-scripts/
-│   ├── verify-pm-gates.js                 ← Coder blocks PM (4.3KB)
-│   ├── verify-ralph-gates.js              ← PM blocks Coder (3.5KB)
-│   └── verify-pm-documentation.js         ← Coder blocks next task (4.2KB)
+│   ├── verify-pm-gates.js            ← Coder blocks PM
+│   ├── verify-ralph-gates.js         ← PM blocks Coder
+│   └── verify-pm-documentation.js    ← Coder blocks next task
 ├── templates/
-│   └── [project-specific templates]
-└── [legacy files - archived]
+│   ├── PM_ASSESSMENT_TEMPLATE.md
+│   ├── QA_REPORT_TEMPLATE.md
+│   ├── SELF_AUDIT_TEMPLATE.md
+│   └── [other templates]
+└── scripts/
+    └── [utility scripts]
 ```
 
 ---
 
-## 🔄 CIRCULAR ENFORCEMENT OVERVIEW
+## 🔄 HOW THE SYNC SYSTEM WORKS
 
-### The Problem
-- ❌ PM makes recommendations without auditing codebase
-- ❌ PM doesn't document completed tasks
-- ❌ Coder codes without research/planning
-- ❌ Coder submits failing code
-- ❌ Self-discipline fails → Wasted time + rework
+### Central Repository (This GitHub Repo)
+- **URL**: `https://github.com/YOUR_USERNAME/antigravity-protocols`
+- **Branch**: `main` (single branch, always production-ready)
+- **Updates**: Edit here → Push to GitHub → Sync to all projects
 
-### The Solution
-**Neither PM nor Coder can bypass quality gates**
+### Project Sync
+Each project has a sync script that:
+1. Clones/pulls this GitHub repository
+2. Copies all protocols to project's `.agent` folder
+3. Reports sync status
+
+### Update Workflow
+
+**To update protocols**:
+
+1. **Edit on GitHub** (Recommended):
+   - Click file → Edit → Commit
+   - Changes immediately available for sync
+
+2. **Edit Locally** (Advanced):
+   ```bash
+   cd /Users/surajsatyarthi/Desktop/Projects/protocol
+
+   # Edit files
+   vim RALPH_PROTOCOL.md
+
+   # Commit and push
+   git add .
+   git commit -m "docs: update RALPH_PROTOCOL - add new gate"
+   git push origin main
+   ```
+
+3. **Sync to All Projects**:
+   ```bash
+   # In each project
+   npm run sync:protocols
+   ```
+
+---
+
+## 📊 PROTOCOL HIERARCHY
 
 ```
-┌─────────────────────────────────────────┐
-│  PM assigns task                        │
-│  ↓ CODER BLOCKS if no research/plan    │
-└─────────────────────────────────────────┘
-           ▼
-┌─────────────────────────────────────────┐
-│  Coder implements                       │
-│  ↓ PM BLOCKS if build/tests fail       │
-└─────────────────────────────────────────┘
-           ▼
-┌─────────────────────────────────────────┐
-│  PM approves work                       │
-│  ↓ CODER BLOCKS next task if PM didn't │
-│    document current task (Gate 8)      │
-└─────────────────────────────────────────┘
+ALL CODE SUBMISSIONS:
+├─ Ralph Protocol (12/12) ← Always required
+└─ PM Protocol (7/7) ← Required if user-facing/strategic
+
+USER-FACING FEATURES:
+├─ Ralph Protocol (12/12)
+├─ PM Protocol (7/7)
+└─ Circular Enforcement (state transitions)
+
+INFRASTRUCTURE WORK:
+└─ Ralph Protocol (12/12) only
+
+ALL COMMUNICATION:
+├─ Communication Protocol (ledger-based)
+└─ Shareable Prompts (Rule 5 - mandatory)
 ```
 
-### How It Works
+---
 
-| Verification | Who Uses | Purpose | Command |
-|-------------|----------|---------|---------|
-| **PM Gates** | Coder | Blocks task start without research/plan | `npm run verify:pm-gates -- TASK_ID` |
-| **Ralph Gates** | PM | Blocks approval without quality gates | `npm run verify:ralph-gates -- TASK_ID` |
-| **PM Documentation** | Coder | Blocks next task if PM didn't document | `npm run verify:pm-documentation -- TASK_ID` |
+## 🚨 NON-NEGOTIABLE RULES
 
-**Exit codes**: 0 = Pass (proceed), 1 = Fail (block in ledger)
+1. **Ralph 12/12 Required** - No code ships without all 12 gates passing
+2. **PM 7/7 for User-Facing** - Strategic validation mandatory for user-visible work
+3. **Shareable Prompts (Rule 5)** - Every message to CEO must include copy-paste prompt
+4. **Evidence-Based** - All gate scores require proof (screenshots, logs, test results)
+5. **Circular Enforcement** - PM and Coder verify each other's work before transitions
+6. **No Gate Skipping** - Cannot approve/reject without completing full gate report
 
 ---
 
-## 📖 CORE PROTOCOLS
+## 🎓 PROJECTS USING THESE PROTOCOLS
 
-### 1. Ralph Protocol (Coder Quality Gates)
-**File**: `RALPH_PROTOCOL.md`
-**Purpose**: 12 technical quality gates for coder
-**Version**: v6.5 (2026-02-12)
+1. **googleantigravity.directory** - Marketplace for Antigravity tools
+2. **Project 2** - TBD
+3. **Project 3** - TBD
+4. **Project 4** - TBD
+5. **Project 5** - TBD
 
-**Key Gates**:
-- **G1**: Physical Audit (verify current state)
-- **G2**: Research (3+ web searches MANDATORY)
-- **G3**: Plan Approval (CEO/PM signature required)
-- **G4-G9**: Implementation (code, security, tests, accessibility)
-- **G10-G11**: Deployment verification
-- **G12**: Documentation
-
-**Enforcement**: Pre-dev and pre-commit hooks block without research/plan
+All projects sync from this central repository.
 
 ---
 
-### 2. PM Protocol (Strategic Validation)
-**File**: `PM_PROTOCOL.md`
-**Purpose**: 8 strategic gates for PM
-**Version**: v3.0 (2026-02-12)
+## 🛠 VERIFICATION SCRIPTS
 
-**Key Gates**:
-- **Gate 1**: Strategic Alignment
-- **Gate 2**: Product-Market Fit (data-driven)
-- **Gate 3**: Monetization Path
-- **Gate 4**: SEO Impact
-- **Gate 5**: Virality as Product
-- **Gate 6**: Virality as Engineering
-- **Gate 7**: MRR Validation
-- **Gate 8**: PM Documentation Accountability (NEW v3.0)
-
-**Gate 8 Requirements** (After approving ANY coder work):
-1. Create `.ralph/TASK_ID-completion-report.md`
-2. Update `PROJECT_LEDGER.md` to DONE
-3. Commit: `docs: document TASK_ID completion (Gate 8)`
-
-**Consequence**: Coder blocks next task if PM skips Gate 8
-
----
-
-### 3. Circular Enforcement (Mutual Accountability)
-**File**: `CIRCULAR_ENFORCEMENT.md`
-**Purpose**: Workflow documentation for PM ↔ Coder verification
-**Version**: 1.0 (2026-02-12)
-
-**Task Lifecycle**:
-1. PENDING → RESEARCHED (PM creates research audit)
-2. RESEARCHED → PLANNED (PM creates implementation plan)
-3. PLANNED → CODE_COMPLETE (Coder implements)
-4. CODE_COMPLETE → DOCUMENTED (PM documents - Gate 8)
-5. DOCUMENTED → DONE (Both verified)
-
-**Enforcement**: Each transition requires verification by peer
-
----
-
-## 🛠️ VERIFICATION SCRIPTS
-
-### verify-pm-gates.js (4.3KB)
+### verify-pm-gates.js
 **Who uses**: Coder
 **When**: Before starting task
-**Checks**:
-- ✅ Research audit exists (`audit-gate-0-TASK_ID.log`)
-- ✅ Research contains 3+ web searches
-- ✅ Implementation plan exists (`implementation-plan-TASK_ID.md`)
-- ✅ Plan has "Alternatives Considered" section
-- ✅ Plan has approval signature
-- ✅ Previous task documented (if exists)
+**Checks**: Research audit exists, plan approved, 3+ web searches
+**Exit codes**: 0 = Pass, 1 = Block
 
-**Exit codes**: 0 = Pass, 1 = Block (PM missing artifacts)
-
----
-
-### verify-ralph-gates.js (3.5KB)
+### verify-ralph-gates.js
 **Who uses**: PM
 **When**: Before approving task
-**Checks**:
-- ✅ Build compiles (`npm run build`)
-- ✅ Lint passes (`npm run lint`)
-- ✅ Tests pass (`npm run test`)
-- ✅ Research audit exists
+**Checks**: Build, lint, tests pass
+**Exit codes**: 0 = Pass, 1 = Block
 
-**Exit codes**: 0 = Pass, 1 = Block (Coder quality issues)
-
----
-
-### verify-pm-documentation.js (4.2KB)
+### verify-pm-documentation.js
 **Who uses**: Coder
-**When**: Before starting next task (verifies previous task documented)
-**Checks**:
-- ✅ Completion report exists (`.ralph/TASK_ID-completion-report.md`)
-- ✅ Ledger updated (`PROJECT_LEDGER.md` status DONE)
-- ✅ Docs committed (git log shows documentation commits)
-
-**Exit codes**: 0 = Pass, 1 = Block (PM didn't complete Gate 8)
+**When**: Before starting next task
+**Checks**: PM documented previous task (Gate 8)
+**Exit codes**: 0 = Pass, 1 = Block
 
 ---
 
-## 🎓 TRAINING
+## 📚 TRAINING
 
-### For Coders (Using Circular Enforcement)
-
-**Before starting task**:
+### For Coders
 ```bash
+# Before starting task
 npm run verify:pm-gates -- ENTRY-XXX
 # Exit 0 → Start work
 # Exit 1 → Comment "🚫 BLOCKED" in ledger
-```
 
-**Before starting next task**:
-```bash
+# Before starting next task
 npm run verify:pm-documentation -- ENTRY-{previous}
 # Exit 0 → Accept next task
 # Exit 1 → Block until PM completes Gate 8
 ```
 
----
-
-### For PMs (Using Circular Enforcement)
-
-**Before assigning task**:
-1. Create `audit-gate-0-TASK_ID.log` (3+ web searches)
-2. Create `implementation-plan-TASK_ID.md` (with alternatives)
-3. Get CEO approval
-
-**Before approving task**:
+### For PMs
 ```bash
+# Before approving task
 npm run verify:ralph-gates -- ENTRY-XXX
 # Exit 0 → Approve
 # Exit 1 → Comment "🚫 BLOCKED" in ledger
+
+# After approving (Gate 8 - MANDATORY)
+# 1. Create .ralph/ENTRY-XXX-completion-report.md
+# 2. Update PROJECT_LEDGER.md to DONE
+# 3. Commit: "docs: document ENTRY-XXX completion (Gate 8)"
 ```
 
-**After approving task (Gate 8 - MANDATORY)**:
-1. Create `.ralph/ENTRY-XXX-completion-report.md`
-2. Update `PROJECT_LEDGER.md` to DONE
-3. Commit: `docs: document ENTRY-XXX completion (Gate 8)`
-
 ---
 
-## 📊 BENEFITS
+## 📝 VERSION HISTORY
 
-| Metric | Before | After |
-|--------|--------|-------|
-| PM recommendations without audit | Common | **Blocked by coder** |
-| PM doesn't document tasks | Common | **Blocks next task** |
-| Coder codes without research | Common | **Blocked by pre-dev hook** |
-| Coder submits failing code | Common | **Blocked by PM** |
-| Wasted time on rework | High | **Eliminated** |
-| Single point of failure | PM or Coder | **None** |
+### v3.0 (2026-02-12) - Sync System Edition
+- ✅ **NEW**: Centralized GitHub repository
+- ✅ **NEW**: Auto-sync system for all projects
+- ✅ Protocol sync via npm commands
+- ✅ Removed manual file copying requirement
+- ✅ Single source of truth architecture
 
----
+### v2.1 (2026-02-12) - Shareable Prompts Edition
+- ✅ Added mandatory shareable prompts (Rule 5)
+- ✅ CEO relay standardization
 
-## 🚀 IMPLEMENTATION GUIDE
+### v2.0 (2026-02-12) - Circular Enforcement Edition
+- ✅ Added circular enforcement system
+- ✅ Added 3 verification scripts
+- ✅ Updated Ralph Protocol to v6.5
+- ✅ Updated PM Protocol to v3.0 (Gate 8)
 
-**For complete step-by-step instructions**, see:
-- **CIRCULAR_ENFORCEMENT_SETUP.md** - Full implementation guide (15KB)
-
-**Quick checklist**:
-- [ ] Copy verification scripts to `./scripts/`
-- [ ] Copy protocols to `./.agent/`
-- [ ] Copy documentation to `./docs/`
-- [ ] Add npm commands to `package.json`
-- [ ] Make scripts executable
-- [ ] Test verification commands
-- [ ] Train team on workflow
-
----
-
-## 📚 RELATED PROJECTS
-
-**Tested on**:
-- ✅ antigravity.directory (2026-02-12) - Production-ready
-
-**Recommended for**:
-- Any PM ↔ Coder collaboration
-- Projects with quality gate requirements
-- Teams struggling with accountability
-- Projects with >2 contributors
+### v1.0 (2026-02-11) - Original Release
+- Initial protocol collection
 
 ---
 
@@ -341,46 +304,21 @@ npm run verify:ralph-gates -- ENTRY-XXX
 
 ### Common Issues
 
-**Q: Verification script fails with "command not found"**
-A: Run `chmod +x scripts/verify-*.js` to make scripts executable
+**Q: How do I update protocols across all projects?**
+A: Edit in this GitHub repo → Push → Run `npm run sync:protocols` in each project
 
-**Q: Coder blocked but PM thinks research exists**
-A: Check file naming: must be `audit-gate-0-TASK_ID.log` (e.g., `audit-gate-0-ENTRY-002.log`)
+**Q: Can I edit .agent folder directly in projects?**
+A: NO - edits will be overwritten on next sync. Edit in this central repo instead.
 
-**Q: PM gate verification passes but plan not approved**
-A: Plan file must contain "APPROVED" or "✅ CEO APPROVAL" string
+**Q: Sync fails with "repository not found"**
+A: Check `scripts/sync-protocols.js` has correct GitHub URL
 
-**Q: PM documented task but coder still blocked**
-A: Check git commits - must include "docs:" prefix in commit message
-
-### Getting Help
-
-1. Read **CIRCULAR_ENFORCEMENT_SETUP.md** (comprehensive guide)
-2. Read **CIRCULAR_ENFORCEMENT.md** (workflow details)
-3. Check verification script output (shows exactly what's missing)
-4. Review protocol files (Ralph, PM) for gate requirements
+**Q: Sync not pulling latest changes**
+A: Force refresh: `rm -rf .protocol-cache && npm run sync:protocols:init`
 
 ---
 
-## 📝 VERSION HISTORY
-
-### v2.0 (2026-02-12) - Circular Enforcement Edition
-- ✅ Added circular enforcement system
-- ✅ Added 3 verification scripts (12KB)
-- ✅ Updated Ralph Protocol to v6.5 (sequential enforcement)
-- ✅ Updated PM Protocol to v3.0 (Gate 8 accountability)
-- ✅ Added CIRCULAR_ENFORCEMENT.md (workflow docs)
-- ✅ Added CIRCULAR_ENFORCEMENT_SETUP.md (implementation guide)
-- ❌ Removed old protocol files (archived)
-
-### v1.0 (2026-02-11) - Original Alpha Release
-- Initial protocol collection
-- PM, QA, Ralph protocols
-- Standing orders and workflow
-
----
-
-**Status**: Production-Ready (2026-02-12)
-**Tested**: antigravity.directory project
-**License**: Reusable for all projects
-**Maintenance**: Update protocols as needed, keep verification scripts in sync
+**Last Updated**: 2026-02-12
+**Repository**: https://github.com/YOUR_USERNAME/antigravity-protocols
+**Status**: Production-Ready (Centralized Sync System)
+**Maintenance**: Update here → Sync to all projects
