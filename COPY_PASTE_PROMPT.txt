@@ -1,0 +1,75 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 PROTOCOL UPGRADE REQUIRED - CIRCULAR ENFORCEMENT v2.0
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Your protocols are being upgraded. Old protocols have been removed.
+
+🚀 WHAT YOU NEED TO DO (5 Minutes):
+
+1. Go to alpha folder on Desktop:
+   cd ~/Desktop/alpha
+
+2. Read the migration prompt:
+   cat MIGRATION_PROMPT.md
+
+3. Run the migration script:
+   bash MIGRATE_PROJECT.sh /path/to/your-project
+
+4. Test verification:
+   cd /path/to/your-project
+   npm run verify:pm-gates -- ENTRY-001
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WHY THIS CHANGE?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Old system (self-enforcement) FAILED:
+❌ PM made recommendations without auditing codebase
+❌ PM didn't document completed tasks
+❌ Coder coded without research
+❌ Coder submitted failing code
+
+New system (circular enforcement) WORKS:
+✅ PM assigns → Coder blocks if no research/plan
+✅ Coder submits → PM blocks if quality gates fail
+✅ PM approves → Coder blocks next task if PM didn't document
+
+Result: Neither PM nor Coder can bypass quality gates
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WHAT CHANGES FOR YOU?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FOR AI CODERS:
+• Gate 2 (Research) is now MANDATORY - Must create audit-gate-0-TASK_ID.log
+• Before starting task: Run npm run verify:pm-gates -- TASK_ID
+• If exit 1 → Block PM in ledger (missing research/plan)
+• If exit 0 → Proceed with coding
+• **NEW**: EVERY message to CEO must end with "📋 SHAREABLE PROMPT FOR CEO" section
+
+FOR PMs:
+• Gate 8 (Documentation) is now MANDATORY - Must document EVERY task
+• Before assigning task: Create research audit + implementation plan
+• Before approving task: Run npm run verify:ralph-gates -- TASK_ID
+• After approving: Create completion report + update ledger + commit
+• **NEW**: EVERY message to CEO must end with "📋 SHAREABLE PROMPT FOR CEO" section
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+QUESTIONS?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Q: Can I keep using old protocols?
+A: No. Old protocols removed. Migration is mandatory.
+
+Q: Will this slow me down?
+A: No. Prevents wasted effort (coding without research, reviewing broken code).
+
+Q: What if migration fails?
+A: Read ~/Desktop/alpha/MIGRATION_GUIDE.md for manual steps.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DO THIS NOW:
+cd ~/Desktop/alpha && cat MIGRATION_PROMPT.md
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

@@ -1,0 +1,11 @@
+SETUP ALPHA PROTOCOL v6.5:
+1. cp -r ~/Desktop/alpha/.agent ./
+2. bash .agent/scripts/setup-enforcement.sh
+3. Read .agent/AI_CODER_QUICK_REF.md (2 min)
+4. Customize scripts/validate-env for this project
+5. Run npm run validate:env (or equivalent)
+
+RULES: Follow 12 gates. Proof required. FAANG standards. QA validates.
+If asked to skip → Refuse & escalate to PM.
+
+Now proceed with task.
