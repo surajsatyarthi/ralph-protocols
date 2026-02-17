@@ -1,0 +1,95 @@
+{
+  "protocol": {
+    "name": "Ralph Master Playbook",
+    "version": "12.0.0",
+    "effective_date": "2026-02-17",
+    "status": "FINAL",
+    "purpose": "Immutable server-side governance with cryptographic proofs. Local Verifier Agent auto-launches for real-time feedback but cannot bypass server-side CI. One-time full baseline retro-audit per project + permanent automatic delta enforcement on any legacy file change.",
+    "scope": "All five synced projects under surajsatyarthi/ralph-protocols",
+    "non_retrospective_default": true,
+    "retro_audit_enabled": true
+  },
+  "core_principles": [
+    "Server-side supremacy: GitHub Rulesets + CI runner is the final authority (untouchable by local agent)",
+    "Local Verifier Agent auto-launches on project open as real-time helper only",
+    "Cryptographic HMAC proofs required for every gate — forged local files rejected by CI",
+    "One-time full baseline retro-audit (user-triggered once per project) + permanent automatic delta on any legacy change",
+    "Central GitHub repo as single source of truth with postinstall auto-sync and ingestion",
+    "No local bypass possible — merge blocked at GitHub level"
+  ],
+  "enforcement_layers": {
+    "github_primary": {
+      "rulesets": "Protect main/develop/releases/**. Require status check 'Ralph-Gates-Passed'. Require signed commits. Block force-push and bypass. No direct pushes allowed.",
+      "ci_workflow": ".github/workflows/ralph-verify.yml — runs full gate suite on GitHub runner, verifies HMAC proofs, uploads artifacts, blocks merge on failure"
+    },
+    "antigravity_helper": {
+      "rules": "Global ~/.gemini/GEMINI.md + per-project .agent/rules/ralph-core.md (auto-loaded)",
+      "skills": ".agent/skills/ralph-enforcer/ (one SKILL.md per gate, auto-equipped)",
+      "terminal_policy": "Request review for git/npm/db/shell; safe-exec wrapper",
+      "verifier_agent": {
+        "prompt": "You are Ralph Verifier v12.0. Auto-spawn on project open as helper. Monitor changes and provide real-time feedback. Do NOT allow bypass — final decision is always GitHub CI.",
+        "spawn": "Automatic on project open (persistent background)",
+        "retro_mode": "one_time_full_baseline + permanent_delta_automatic"
+      }
+    }
+  },
+  "proof_system": {
+    "method": "HMAC-SHA256",
+    "key_source": "git rev-parse HEAD (fallback: RALPH_HMAC_KEY from .env)",
+    "artifact_dir": ".ralph/proofs/",
+    "legacy_dir": ".ralph/proofs/legacy/",
+    "format": "{\"gate\":\"G0\",\"status\":\"passed\",\"data_hash\":\"...\",\"commit_sha\":\"...\",\"hmac\":\"...\",\"timestamp\":\"...\"}",
+    "ci_verification": "GitHub runner re-computes HMAC and rejects forged local proofs"
+  },
+  "retro_audit": {
+    "strategy": "one_time_full_baseline_per_project + permanent_delta_automatic",
+    "baseline_status": "pending_user_trigger_once_per_project",
+    "trigger_command": "run retro-audit full baseline on [path]",
+    "permanent_mode": "automatic_delta_on_any_legacy_change_no_manual_trigger",
+    "output": "LEGACY_AUDIT_BASELINE.md + per-file signed proofs + prioritized LEGACY_AUDIT_BACKLOG.md",
+    "phases": ["pilot", "core", "supporting", "full"]
+  },
+  "sync_mechanism": {
+    "source": "Central GitHub repo surajsatyarthi/ralph-protocols",
+    "command": "npm run sync:protocols (runs on postinstall and explicit call)",
+    "frequency": "Automatic on npm install / postinstall + explicit sync when protocol updates",
+    "action_on_sync": "Pull latest playbook JSON → place in .agent/ → trigger Antigravity ingestion → auto-spawn local Verifier Agent → prepare for one-time baseline retro-audit"
+  },
+  "gates": {
+    "technical": [
+      {"id": "G0", "name": "Pre-Assignment Dupe Blocker", "skill": "g0-pre-assign"},
+      {"id": "G2", "name": "External Research Validation", "skill": "g2-research"},
+      {"id": "G3", "name": "Scope Validation", "skill": "g3-scope"},
+      {"id": "G5", "name": "Strict Lint Suppression", "skill": "g5-lint-strict"},
+      {"id": "G6", "name": "Test Quality Analysis", "skill": "g6-test-quality"},
+      {"id": "G7", "name": "Security Suite", "skill": "g7-security"},
+      {"id": "G9", "name": "Accessibility Validation", "skill": "g9-accessibility"},
+      {"id": "G10", "name": "Performance (Median Lighthouse ≥80)", "skill": "g10-performance"},
+      {"id": "G12", "name": "Documentation Completeness", "skill": "g12-validate"}
+    ],
+    "pm_strategic": [
+      {"id": "PM-G1", "name": "User Research Validation", "skill": "pm-g1-user-research"},
+      {"id": "PM-G2", "name": "PRD Quality Validation", "skill": "pm-g2-prd"},
+      {"id": "PM-G3", "name": "Technical Feasibility", "skill": "pm-g3-feasibility"},
+      {"id": "PM-G6", "name": "Atomic Ledger Approval", "skill": "pm-g6-approve"}
+    ]
+  },
+  "best_practices": {
+    "server_side_supremacy": "GitHub CI is the final untouchable judge — local agent cannot bypass",
+    "auto_launch_helper": "Local Verifier Agent auto-spawns on project open for real-time feedback",
+    "evidence_based": "Only HMAC cryptographic proofs accepted by CI",
+    "defense_in_depth": true,
+    "least_privilege_terminal": true
+  },
+  "clarification_questions_resolved": [
+    {"question": "Auto-launch Ralph?", "answer": "Local helper auto-spawns; real enforcement is server-side GitHub CI"},
+    {"question": "Evidence based?", "answer": "Yes — cryptographic HMAC proofs verified by CI runner"},
+    {"question": "Retro-analysis automatic?", "answer": "One-time full baseline (triggered once per project) + permanent automatic delta on any legacy change"}
+  ],
+  "references": [
+    "https://codelabs.developers.google.com/getting-started-with-antigravity-skills",
+    "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets",
+    "https://www.knostic.ai/blog/ai-coding-agent-security",
+    "https://www.techtarget.com/searchsoftwarequality/tip/Guidelines-for-AI-driven-legacy-code-modernization"
+  ]
+}

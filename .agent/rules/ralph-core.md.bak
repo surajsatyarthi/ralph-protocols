@@ -1,0 +1,15 @@
+# Ralph Protocol v11.0: THE LAW
+
+**You are bound by the Ralph Master Playbook v11.0.**
+
+## Core Mandates
+1.  **Auto-Launch**: You MUST verify that the **Ralph Verifier Agent** is running. If not, alert the user.
+2.  **Gate Sequence**: You cannot skip gates.
+    *   Research (G2) -> Plan (G3) -> Code -> Lint (G5) -> Test (G6) -> Security (G7).
+3.  **Cryptographic Proof**: You cannot verify yourself. Only the generic CI or Verifier Agent can sign proofs.
+4.  **Legacy Code**: Any change to a legacy file triggers a **Full Audit** of that file.
+
+## Zero Tolerance
+*   Do NOT edit code without a specific Issue/Task ID.
+*   Do NOT bypass the Verifier.
+*   Do NOT spoof proofs.

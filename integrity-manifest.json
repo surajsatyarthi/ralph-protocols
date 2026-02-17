@@ -1,0 +1,18 @@
+{
+  "manifest_version": "1.0",
+  "generated_at": "2026-02-17T19:38:00+05:30",
+  "scripts": {
+    "scripts/verify-gate-0.js": "01fdb8aed1b174e1be705383496a08be24d9b736469261730d0945eb0829389a",
+    "scripts/verify-gate-1.js": "7db279ea19e0fcc30f9bd1f351ee3ded949b2d52b9fa47f5c2ed08f494342980",
+    "scripts/verify-gate-2.js": "fd7cdbd203e5b555c91ea6cefa5457662d9ef3a050b6c5fe28eb1200e6b02ded",
+    "scripts/verify-gate-3.js": "6b168f6e32446aeadefd717db3ecf7194730c4deda0daa4e0a0b984a95cf1da4",
+    "scripts/verify-gate-5.js": "1407f778dcd5986e897c33ca7d24832f17f56ee9db6ca5370c342c6294730317",
+    "scripts/verify-gate-6.js": "8e70f6c37e424ddb0570a3eeaed8f8c6a9611e07f67ba87a56f5de16a5121897",
+    "scripts/verify-gate-7.js": "2973eaae7f760d26e0ec638f19ed87c53e5a6b930566f7f297814926a10ecf52",
+    "scripts/verify-gate-9.js": "3c06e37814fd29588e3c5f1500628a4d0637f65c8c96b537af27b74a2260f691",
+    "scripts/verify-gate-10.js": "605646df8bfad669d5dac4031946a1a415e3ddfccb8f53006af81d582b675dc6",
+    "scripts/verify-gate-12.js": "87cdf353af0dfbbc81d14337fd2f6a0743aa10d3c2016e010ae67d5ac60310a0",
+    "scripts/verify-pm-gate.js": "abdaa855e6494ce860bb11b13a95e99e7fbc254e7b4227dd1c27d47b4c81c20f",
+    "scripts/verify-semantic.js": "0dd70347e9e038b255a067a25b357a7570d754301a62fd5419303e5ad0a8b85a"
+  }
+}

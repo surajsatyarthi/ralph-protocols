@@ -1,0 +1,19 @@
+{
+  "name": "protocol_rollout",
+  "version": "1.0.0",
+  "description": "**Mandatory Governance & Quality Standards for All Projects**",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "sync:protocols": "node scripts/sync-protocols.js",
+    "postinstall": "npm run sync:protocols",
+    "sidecar": "node scripts/ralph-sidecar.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
