@@ -293,6 +293,47 @@ async function main() {
     console.log(`   ${GREEN}✅ User flow checklist: ${checklistResult.checked} steps completed${RESET}`);
   }
 
+  // --- Check 7b: Design compliance (if G3 plan has a Design Reference) ---
+  // If the plan specified a design (Figma, screenshot, written description),
+  // the browser walkthrough must confirm whether the implementation matches it.
+  console.log('🎨 Checking design compliance against G3 plan...');
+  const planCandidates = [
+    path.join(WORKSPACE_ROOT, 'docs', 'implementation', 'plans', `${entryId}-plan.md`),
+    path.join(WORKSPACE_ROOT, `implementation-plan-${entryId}.md`),
+  ];
+  const foundPlanPath = planCandidates.find(p => fs.existsSync(p)) || null;
+
+  if (foundPlanPath) {
+    const planContent = fs.readFileSync(foundPlanPath, 'utf-8');
+    const hasDesignRef = /##.*Design\s+Reference/i.test(planContent);
+    if (hasDesignRef) {
+      const hasDesignConfirmation = /matches\s+design\s*:\s*(yes|no)/i.test(report);
+      if (!hasDesignConfirmation) {
+        violations.push(
+          'G3 plan has a "## Design Reference" but the browser test report does not confirm design compliance. ' +
+          'Add this line to the browser test report:\n' +
+          '  Matches design: YES\n' +
+          '  — or —\n' +
+          '  Matches design: NO (reason: <describe the difference>)\n' +
+          'Purpose: ensures the built UI matches what was approved in the G3 plan.'
+        );
+      } else {
+        const designMatch = report.match(/matches\s+design\s*:\s*(yes|no)/i);
+        const result = designMatch ? designMatch[1].toUpperCase() : 'UNKNOWN';
+        if (result === 'NO') {
+          console.log(`   ${YELLOW}⚠️  Matches design: NO — implementation differs from G3 design reference. PM should review.${RESET}`);
+          // Warning only — PM may have approved the deviation; not blocking Gate 13
+        } else {
+          console.log(`   ${GREEN}✅ Matches design: YES${RESET}`);
+        }
+      }
+    } else {
+      console.log(`   ℹ️  G3 plan has no Design Reference — skipping design compliance check`);
+    }
+  } else {
+    console.log(`   ℹ️  G3 plan not found — skipping design compliance check`);
+  }
+
   // --- Check 7: Browser recording (warning only — not blocking) ---
   const hasRecording = /\.webm|\.mp4|recording\b|browser.*record/i.test(report);
   if (!hasRecording) {
