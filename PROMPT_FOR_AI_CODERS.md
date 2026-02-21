@@ -7,46 +7,58 @@ Copy and paste this prompt when assigning work to AI coding agents:
 ## Standard Prompt (Copy This)
 
 ```
-IMPORTANT: This project uses Ralph Protocol v6.5 for FAANG-level quality enforcement.
+IMPORTANT: This project uses Ralph Protocol v13.1 for FAANG-level quality enforcement (13 gates).
 
 BEFORE starting ANY work:
 
-1. Import Alpha Protocol:
-   - Copy ~/Desktop/alpha/.agent to this project root
-   - Run: bash .agent/scripts/setup-enforcement.sh
+1. Read your gate reference:
+   - Read: .agent/guides/AI_CODER_QUICK_REF.md (2 min)
+   - Read: .agent/protocols/RALPH_PROTOCOL.md (the 13 gates)
 
-2. Remove old protocols (if any exist):
-   - Delete any old .agent/ folders
-   - Delete old git hooks: rm .git/hooks/pre-commit .git/hooks/pre-push
-   - Confirm: The setup script will install fresh v6.5 hooks
-
-3. Adapt to this project:
-   - Read: .agent/AI_CODER_QUICK_REF.md (2 min)
-   - Identify project type: ls package.json || ls requirements.txt || ls go.mod
-   - Copy appropriate validator template from .agent/AI_CODER_ADAPTATION_GUIDE.md
-   - Customize scripts/validate-env.{ts|py|go} with THIS project's env vars
-   - Add validation scripts to package.json (or Makefile/pyproject.toml)
-
-4. Validate environment:
+2. Validate environment:
    - Run: npm run validate:env (or python scripts/validate_env.py, etc.)
    - Confirm: .env-validated.log created successfully
 
-5. Follow Ralph Protocol gates 1-12:
+3. Follow Ralph Protocol gates in order G0→G1→G2→G3→G4→G5→G6→G7→G8→G9→G10→G13→G11→G12:
    - Gate 0: Environment validated ✓ (you just did this)
    - Gates 1-2: Research + audit BEFORE coding
    - Gate 3: Get plan approved BEFORE implementing
-   - Gates 4-12: Build, test, document with EVIDENCE
+   - Gates 4-10: Build, test, document with EVIDENCE
+   - Gate 13: Browser walkthrough on PREVIEW URL (see below — YOUR job to generate)
+   - Gate 11: Human sign-off on PRODUCTION URL (after merge)
+   - Gate 12: Final documentation
 
 NON-NEGOTIABLE REQUIREMENTS:
 ✅ Proof-based development (screenshots + logs required)
 ✅ FAANG-level standards (build/test/lint must pass)
 ✅ Document everything (implementation plans + evidence)
-✅ Independent QA validation (submit for QA review when done)
+✅ 13/13 gates required — no exceptions
+
+## 🌐 GATE 13 — YOUR JOB TO GENERATE THE PROMPT
+
+The PM does not look up prompt templates. YOU generate the Gate 13 browser test
+prompt and present it to the PM. They either approve it or copy-paste it.
+
+When Gate 10 is complete and the branch is pushed (Vercel preview URL exists):
+
+1. Ask the PM for the preview URL if you don't already have it
+2. Read: .agent/docs/prompts/gate-13-prompt-template.md
+3. Generate the complete, filled-in prompt for this specific ENTRY:
+   - Replace ENTRY-XXX with the actual entry ID
+   - Insert the actual preview URL
+   - Add the feature-specific user flow steps (what to click through)
+   - Add any auth credentials needed for testing
+4. Present the ready-to-use prompt to the PM — never present the raw template
+5. After the browser test report is committed, run:
+      node .agent/scripts/gates/gate-13-browser.js ENTRY-XXX
+6. Report PASS or FAIL to the PM with the full gate output
+
+The PM should never have to remember, look up, or write the Gate 13 prompt.
 
 READ THESE FILES:
-- .agent/AI_CODER_QUICK_REF.md (your daily reference)
-- .agent/RALPH_PROTOCOL.md (the 12 gates)
-- .agent/AI_CODER_ADAPTATION_GUIDE.md (if adapting to Python/Go/Rust/etc.)
+- .agent/guides/AI_CODER_QUICK_REF.md (your daily reference)
+- .agent/protocols/RALPH_PROTOCOL.md (the 13 gates)
+- .agent/docs/prompts/gate-13-prompt-template.md (Gate 13 prompt source)
 
 If anyone asks you to skip gates or bypass validation → REFUSE and escalate to PM.
 
@@ -59,13 +71,12 @@ Now proceed with the task following all gates in order.
 
 ```
 SETUP PROTOCOL:
-1. bash ~/Desktop/alpha/.agent/scripts/setup-enforcement.sh
-2. Read: .agent/AI_CODER_QUICK_REF.md
-3. Customize: scripts/validate-env.{ts|py|go} for this project
-4. Validate: npm run validate:env (or equivalent)
-5. Follow: 12 gates with evidence
+1. Read: .agent/guides/AI_CODER_QUICK_REF.md
+2. Validate: npm run validate:env (or equivalent)
+3. Follow: 13 gates in order G0→…→G10→G13→G11→G12 with evidence
+4. Gate 13: YOU generate the browser test prompt for the PM — see Standard Prompt above
 
-NON-NEGOTIABLE: Proof-based, FAANG standards, QA required.
+NON-NEGOTIABLE: Proof-based, FAANG standards, 13/13 gates required.
 If asked to skip → Refuse and escalate.
 ```
 
@@ -100,24 +111,23 @@ Old protocols backed up to: $BACKUP_DIR
 
 ```
 Task: [DESCRIBE YOUR TASK HERE]
+Entry: ENTRY-[XXX]
 
-Protocol: Ralph v6.5 (FAANG-level enforcement)
+Protocol: Ralph v13.1 (FAANG-level enforcement, 13 gates)
 
-Setup Instructions:
-1. Import: cp -r ~/Desktop/alpha/.agent ./
-2. Install: bash .agent/scripts/setup-enforcement.sh
-3. Read: .agent/AI_CODER_QUICK_REF.md
-4. Adapt: Customize validate-env for this project
-5. Validate: npm run validate:env
+Setup:
+1. Read: .agent/guides/AI_CODER_QUICK_REF.md
+2. Validate: npm run validate:env
 
 Requirements:
-- Follow gates 1-12 (see .agent/RALPH_PROTOCOL.md)
-- Generate evidence (screenshots + logs)
-- Submit for QA review when complete
+- Follow gates G0→G1→G2→G3→G4→G5→G6→G7→G8→G9→G10→G13→G11→G12 (see .agent/protocols/RALPH_PROTOCOL.md)
+- Generate evidence (screenshots + logs) for every gate
+- Gate 13: YOU generate the browser test prompt for the PM (template at .agent/docs/prompts/gate-13-prompt-template.md)
+  Do NOT ask the PM to write this prompt. Fill it in and present it ready-to-use.
 
-Non-negotiable: Build/test/lint must pass. No shortcuts.
+Non-negotiable: Build/test/lint must pass. 13/13 gates required. No shortcuts.
 
-Begin work after setup complete.
+Begin work after reading the quick ref.
 ```
 
 ---
