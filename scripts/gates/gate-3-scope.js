@@ -74,15 +74,65 @@ function main() {
   }
 
   // Flag if major unplanned files
-  const majorUnplanned = analysis.unplanned.filter(f => 
-    !f.includes('test') && 
-    !f.includes('spec') && 
+  const majorUnplanned = analysis.unplanned.filter(f =>
+    !f.includes('test') &&
+    !f.includes('spec') &&
     !f.includes('.md') &&
     !f.includes('package-lock.json')
   );
 
   if (majorUnplanned.length > 3) {
     violations.push(`${majorUnplanned.length} major unplanned files (need explanation)`);
+  }
+
+  // Validation: Design Reference required for UI features (prevents INCIDENT-002 at planning level)
+  const UI_TERMS_RE = /\b(component|layout|page|form|button|modal|dialog|sidebar|header|footer|navbar|nav|menu|table|chart|card|grid)\b/i;
+  if (UI_TERMS_RE.test(planContent)) {
+    console.log('🎨 UI feature detected — checking for Design Reference...');
+    const hasDesignRef = /##.*Design\s+Reference/i.test(planContent);
+    if (!hasDesignRef) {
+      violations.push(
+        'UI feature detected but no "## Design Reference" section found in plan. ' +
+        'Add a Figma link, screenshot path, or written layout description. ' +
+        'Purpose: prevents Antigravity from guessing layouts (INCIDENT-002 root cause at planning level).'
+      );
+    } else {
+      const designMatch = planContent.match(/##.*Design\s+Reference\s*\n([\s\S]*?)(?=\n##|\n---)/i);
+      const designBody = designMatch ? designMatch[1].trim() : '';
+      if (designBody.length < 10) {
+        violations.push(
+          '"## Design Reference" section found but is empty or too brief. ' +
+          'Provide a Figma link (https://figma.com/...), screenshot path (docs/designs/...), ' +
+          'or a written description of the layout (minimum 10 characters).'
+        );
+      } else {
+        console.log('   ✅ Design Reference present');
+      }
+    }
+  }
+
+  // Validation: Success Metric required (observability — Phase 4)
+  console.log('📊 Checking for Success Metric...');
+  if (!/##.*Success\s+Metric/i.test(planContent)) {
+    violations.push(
+      'No "## Success Metric" section found in plan. ' +
+      'Define the single number/signal that proves this feature works. ' +
+      'Example: "Dashboard page loads with data for 100% of authenticated users".'
+    );
+  } else {
+    console.log('   ✅ Success Metric present');
+  }
+
+  // Validation: Failure Signal required (observability — Phase 4)
+  console.log('🚨 Checking for Failure Signal...');
+  if (!/##.*Failure\s+Signal/i.test(planContent)) {
+    violations.push(
+      'No "## Failure Signal" section found in plan. ' +
+      'Define the log line/error that indicates this feature is broken. ' +
+      'Example: "Error: Cannot read properties of undefined" or "HTTP 500 on /api/dashboard".'
+    );
+  } else {
+    console.log('   ✅ Failure Signal present');
   }
 
   // Generate report
