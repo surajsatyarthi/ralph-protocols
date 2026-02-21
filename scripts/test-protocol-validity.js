@@ -2,7 +2,7 @@
 /**
  * Protocol Validity Test
  * Validates the Ralph Protocol repository structure:
- * - Master playbook JSON is valid and has all 12 gates
+ * - Master playbook JSON is valid and has all 13 gates
  * - All scripts referenced in playbook exist on disk
  * - Required documentation files are present
  */
@@ -35,9 +35,9 @@ try {
   process.exit(1);
 }
 
-// 2. Check all 12 gates are defined
+// 2. Check all 13 gates are defined
 console.log('\n--- [2] Gate Coverage ---');
-const requiredGateIds = ['G0','G1','G2','G3','G4','G5','G6','G7','G8','G9','G10','G11','G12'];
+const requiredGateIds = ['G0','G1','G2','G3','G4','G5','G6','G7','G8','G9','G10','G11','G12','G13'];
 const gates = playbook.gates && playbook.gates.technical ? playbook.gates.technical : [];
 const gateIds = gates.map(g => g.id);
 

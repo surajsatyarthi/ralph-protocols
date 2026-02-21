@@ -8,7 +8,7 @@
     "scope": "All synced projects under surajsatyarthi/ralph-protocols",
     "non_retrospective_default": true,
     "retro_audit_enabled": true,
-    "changelog": "v13.0: Added missing G1 (Physical Audit), G4 (Implementation Integrity), G8 (TDD Proof), G11 (Production Verification). Added Node.js runtime check to G0. Fixed gate numbering consistency with RALPH_PROTOCOL.md. All 12 technical gates now enforced."
+    "changelog": "v13.1: Added G13 (Antigravity Browser Walkthrough on Preview URL). G13 gates before G11 in sequence: preview browser test blocks PR merge, human production sign-off runs after merge. Added INCIDENT-001 lessons to G6 (external integration mock rule), G7 (env parity check), G11 (mobile+desktop screenshots + manual checklist), G13 (browser walkthrough on preview). v13.0: Added missing G1 (Physical Audit), G4 (Implementation Integrity), G8 (TDD Proof), G11 (Production Verification). Added Node.js runtime check to G0. Fixed gate numbering consistency with RALPH_PROTOCOL.md. All 13 technical gates now enforced."
   },
   "core_principles": [
     "Server-side supremacy: GitHub Rulesets + CI runner is the final authority (untouchable by local agent)",
@@ -17,7 +17,7 @@
     "One-time full baseline retro-audit (user-triggered once per project) + permanent automatic delta on any legacy change",
     "Central GitHub repo as single source of truth with postinstall auto-sync and ingestion",
     "No local bypass possible — merge blocked at GitHub level",
-    "All 12 gates must be enforced — gaps in gate coverage are P0 protocol violations"
+    "All 13 gates must be enforced — gaps in gate coverage are P0 protocol violations"
   ],
   "enforcement_layers": {
     "github_primary": {
@@ -251,6 +251,41 @@
         "enforcement": "HTTP ping + mobile screenshot + desktop screenshot + manual checklist with all items checked"
       },
       {
+        "id": "G13",
+        "name": "Antigravity Browser Walkthrough (Preview)",
+        "skill": "g13-browser",
+        "script": "scripts/gates/gate-13-browser.js",
+        "phase": "VERIFICATION",
+        "mandatory": true,
+        "blocking": true,
+        "description": "Antigravity's browser subagent tests the PREVIEW deployment URL (not localhost, not production) before the PR is merged. Verifies mobile (375px) and desktop (1280px) screenshots, zero console errors, and a complete user flow walkthrough. Blocks PR merge — users never see broken features.",
+        "incident_lesson": "Previous projects: $7,000 in tokens spent on Playwright tests against mocked backends. When the site launched, nothing worked. Junior developer fired. Project delayed 15 days. Gate 13 replaces 2 days of mocked testing with 5 minutes of real browser verification on the actual deployed preview.",
+        "why_preview_not_localhost": "Localhost has local .env files that differ from what Vercel/Netlify deploys. INCIDENT-001 OAuth worked on localhost (GITHUB_CLIENT_ID was in .env.local) but failed on production (not in Vercel env). Preview deployment uses the SAME environment as production — so missing env vars are caught here before merge.",
+        "artifacts": ["docs/reports/browser-test-ENTRY_ID.md"],
+        "screenshots_required": [
+          "docs/reports/screenshots/[feature]-mobile-375px.png",
+          "docs/reports/screenshots/[feature]-desktop-1280px.png"
+        ],
+        "required_sections": [
+          "Preview URL (Vercel/Netlify preview — NOT localhost, NOT production)",
+          "Viewport: Mobile (375px) — screenshot required",
+          "Viewport: Desktop (1280px) — screenshot required",
+          "Console Errors — count must be 0",
+          "User Flow Checklist — all items [x]"
+        ],
+        "user_flow_checklist": [
+          "Page loads without errors at preview URL",
+          "Feature is visible at mobile viewport (375px)",
+          "Feature is visible at desktop viewport (1280px)",
+          "Core user action completes successfully",
+          "No broken layouts or overlapping elements",
+          "Auth/login flow works (if applicable)"
+        ],
+        "prompt_template": "docs/prompts/gate-13-prompt-template.md",
+        "report_template": "docs/templates/browser-test-report-template.md",
+        "enforcement": "browser-test report + mobile screenshot (375px) + desktop screenshot (1280px) + console errors = 0 + user flow checklist fully checked"
+      },
+      {
         "id": "G12",
         "name": "Documentation Completeness",
         "skill": "g12-validate",
@@ -270,7 +305,11 @@
       {"id": "PM-G6", "name": "Atomic Ledger Approval", "skill": "pm-g6-approve"}
     ]
   },
-  "gate_sequence_rule": "Gates must be executed in order G0 → G1 → G2 → G3 → G4 → G5 → G6 → G7 → G8 → G9 → G10 → G11 → G12. Skipping any gate is a P0 violation. G1 must precede G2 (observe before researching). G2 must precede G3 (research before planning). G3 must precede G4 (plan before coding).",
+  "gate_sequence_rule": "Gates must be executed in order G0 → G1 → G2 → G3 → G4 → G5 → G6 → G7 → G8 → G9 → G10 → G13 → G11 → G12. Skipping any gate is a P0 violation. G13 (Browser Preview) MUST run before G11 (Production) — Antigravity tests the preview URL first, then a human signs off on production after merge. G1 must precede G2 (observe before researching). G2 must precede G3 (research before planning). G3 must precede G4 (plan before coding).",
+  "gate_sequence_explanation": {
+    "G13_before_G11": "G13 tests the Vercel/Netlify PREVIEW URL (before merge). If it fails, the PR is blocked — users never see broken code. G11 tests the PRODUCTION URL (after merge). Together they form a two-layer safety net: automated browser check on preview, then human sign-off on production.",
+    "why_not_localhost": "G13 explicitly requires a preview deployment URL, not localhost. Localhost has local .env files; preview uses the same infrastructure as production. Missing env vars (INCIDENT-001 root cause) show up on preview, not on localhost."
+  },
   "critical_sequence_note": "G1 (Physical Audit) MUST come before G2 (Research). You cannot conduct meaningful research without first directly observing what currently exists in the codebase and production. This is non-negotiable.",
   "best_practices": {
     "server_side_supremacy": "GitHub CI is the final untouchable judge — local agent cannot bypass",
