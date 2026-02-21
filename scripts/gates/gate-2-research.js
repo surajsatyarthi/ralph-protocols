@@ -3,7 +3,9 @@
 /**
  * Gate 2: External Research Validation
  * Ensures proper external research was conducted with documented web searches
- * BLOCKS: Missing research, insufficient sources, no alternatives considered
+ * AND codebase search to avoid re-building existing functionality
+ * BLOCKS: Missing research, insufficient sources, no alternatives considered,
+ *         missing codebase search (prevents INCIDENT-002 class failures)
  */
 
 const fs = require('fs');
@@ -75,6 +77,16 @@ function main() {
     violations.push('No key findings documented');
   }
 
+  // Validation 7: Codebase search documented (prevents INCIDENT-002 class failures)
+  console.log('🔎 Checking for codebase search...');
+  const hasCodebaseSearch = content.match(/##.*Codebase\s+Search|##.*Internal\s+Search|##.*Existing\s+Implementation/i);
+  if (!hasCodebaseSearch) {
+    violations.push(
+      'No "## Codebase Search" section found — must search existing repo before building. ' +
+      'Add a section with grep/search results proving the feature does not already exist.'
+    );
+  }
+
   // Generate report
   const report = {
     entry: entryId,
@@ -86,7 +98,8 @@ function main() {
       wordCount,
       externalLinks: externalLinks.length,
       keyFindings: keyFindings.length,
-      hasAlternatives: content.match(/Alternatives?\s+Considered/i) !== null
+      hasAlternatives: content.match(/Alternatives?\s+Considered/i) !== null,
+      hasCodebaseSearch: hasCodebaseSearch !== null
     },
     violations
   };
@@ -97,6 +110,7 @@ function main() {
   console.log(`   Word count: ${report.metrics.wordCount}`);
   console.log(`   External links: ${report.metrics.externalLinks}`);
   console.log(`   Key findings: ${report.metrics.keyFindings}`);
+  console.log(`   Codebase search: ${report.metrics.hasCodebaseSearch ? '✅' : '❌'}`);
 
   if (violations.length > 0) {
     console.error(`\n❌ Gate 2 BLOCKED: ${violations.length} violation(s):\n`);

@@ -1,5 +1,5 @@
 # 🤖 AI Coder Quick Reference Card
-## Ralph Protocol v7.0 - Keep This Open While Working
+## Ralph Protocol v14.0 - Keep This Open While Working
 
 **Print or keep this visible in your context window**
 
@@ -48,14 +48,16 @@ npm run validate:env  # (or python scripts/validate_env.py)
 
 ---
 
-## 📋 The 12 Gates (In Order, No Skipping)
+## 📋 The 14 Gates (In Order, No Skipping)
+
+Sequence: **G0 → G1 → G2 → G3 → G4 → G5 → G6 → G7 → G8 → G9 → G10 → G13 → G14 → G11 → G12**
 
 | Gate | Phase | Name | What You Must Do | Script | Evidence Required |
 |------|-------|------|-----------------|--------|-------------------|
 | **G0** | Pre-flight | Runtime + Env Validation | Confirm Node.js ≥18 installed. Run `npm run validate:env` | `gate-0-pre-assign.js` | `.env-validated.log` |
 | **G1** | Assessment | Physical Audit | **OBSERVE** current code + production directly. Document in 50+ lines. | `gate-1-physical-audit.js` | `docs/reports/physical-audit-TASK_ID.md` (anchored to git HEAD) |
-| **G2** | Assessment | Technical Research | **RESEARCH** how to build it. 3+ web searches. 5+ sources. Alternatives. 1000+ words. | `gate-2-research.js` | `docs/research/TASK_ID-research.md` |
-| **G3** | Planning | Blueprint & RFC | Write implementation plan with Alternatives section. Get CEO/PM approval. | `gate-3-scope.js` | `implementation-plan-TASK_ID.md` with `Status: APPROVED` |
+| **G2** | Assessment | Technical Research | **RESEARCH** how to build it. 3+ web searches. 5+ sources. Alternatives. **Search existing codebase** (grep for similar features). 1000+ words. | `gate-2-research.js` | `docs/research/TASK_ID-research.md` with `## Codebase Search` section |
+| **G3** | Planning | Blueprint & RFC | Write implementation plan. Get CEO/PM approval. **UI features: add `## Design Reference`.** **All plans: add `## Success Metric` and `## Failure Signal`.** | `gate-3-scope.js` | `implementation-plan-TASK_ID.md` with `Status: APPROVED` |
 | **G4** | Execution | Implementation Integrity | Write code per approved plan. Scope creep >30% = blocked. | `gate-4-implementation.js` | Git commits on branch |
 | **G5** | Execution | Strict Lint Suppression | Zero unexplained `eslint-disable`, `@ts-ignore`, `@ts-nocheck` | `gate-5-lint-strict.js` | Clean lint output |
 | **G6** | Execution | Test Quality | ≥3 assertions/test, real integration tests, no coverage regression | `gate-6-test-quality.js` | Test quality report |
@@ -63,13 +65,16 @@ npm run validate:env  # (or python scripts/validate_env.py)
 | **G8** | Execution | TDD Proof | Tests pass. Coverage ≥80%. New files have test files. | `gate-8-tdd.js` | Test output + coverage % |
 | **G9** | Execution | Accessibility | Axe scan. Keyboard nav. ARIA labels. WCAG 2.1 AA. | `gate-9-accessibility.js` | A11y report (skip if no UI) |
 | **G10** | Verification | Performance | Lighthouse ≥80 (median 3 runs). Bundle no regression >10%. | `gate-10-performance.js` | Lighthouse CI output |
-| **G11** | Verification | Production Verification | Production URL HTTP 200. Screenshot evidence. 24h monitoring. | `gate-11-production.js` | `docs/reports/production-verification-TASK_ID.md` |
+| **G13** | Verification | Browser Walkthrough (Preview) | Test PREVIEW URL in browser. Mobile (375px) + desktop (1280px) screenshots. Console errors = 0. User flow checklist complete. **If G3 has Design Reference: confirm `Matches design: YES/NO`.** | `gate-13-browser.js` | `docs/reports/browser-test-TASK_ID.md` |
+| **G14** | Verification | PM Code Review | Post Code Review Summary to PR (files changed + why; files NOT changed + why). PM reviews code + comments **"APPROVED"**. | `gate-14-pm-review.js` | APPROVED comment on GitHub PR |
+| **G11** | Verification | Production Verification | Production URL HTTP 200. Mobile + desktop screenshots. Human sign-off checklist. **G3 plan must have Success Metric + Failure Signal.** | `gate-11-production.js` | `docs/reports/production-verification-TASK_ID.md` |
 | **G12** | Documentation | Documentation | What changed, why, how to use, rollback procedure. | `gate-12-validate.js` | `docs/walkthroughs/walkthrough-TASK_ID.md` |
 
 **⚠️ Critical order rules:**
 - G1 (Observe) → G2 (Research) → G3 (Plan) → G4 (Code). Cannot reverse or skip.
 - G1 and G2 are ASSESSMENT gates. Never start coding before both are done.
 - G3 approval is required. "I'll get it later" is not accepted.
+- G13 (preview browser test) → G14 (PM approves) → G11 (production sign-off). All three required.
 
 ---
 
@@ -102,12 +107,16 @@ npm run validate:env  # (or python scripts/validate_env.py)
 **Before planning (G2):**
 ```
 ✅ docs/research/TASK_ID-research.md  (Gate 2 — 3+ searches, 5+ sources, 1000+ words)
+   AND ## Codebase Search section     (grep/search proving feature doesn't already exist)
    OR audit-gate-0-TASK_ID.log        (legacy path — still accepted)
 ```
 
 **Before coding (G3):**
 ```
 ✅ implementation-plan-TASK_ID.md  (Gate 3 — includes "Status: APPROVED")
+   ├── ## Design Reference          (required if plan mentions any UI terms)
+   ├── ## Success Metric            (always required — what proves it works?)
+   └── ## Failure Signal            (always required — what log/error means it's broken?)
 ```
 
 **During work:**
@@ -117,11 +126,12 @@ npm run validate:env  # (or python scripts/validate_env.py)
 ✅ Test output logs
 ```
 
-**Before submitting:**
+**Before submitting (G13 + G14):**
 ```
-✅ screenshots/ folder with visual proof
-✅ pre-submission-gate.txt (all checkboxes marked)
-✅ self-audit.txt (spec compliance)
+✅ docs/reports/browser-test-TASK_ID.md  (Gate 13 — preview URL, screenshots, 0 console errors)
+   └── Matches design: YES/NO            (if G3 plan has Design Reference)
+✅ APPROVED comment on GitHub PR         (Gate 14 — PM code review)
+   └── Code Review Summary in PR body   (files changed + NOT changed)
 ```
 
 ---
