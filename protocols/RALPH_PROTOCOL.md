@@ -1,467 +1,343 @@
-# 🦅 RALPH PROTOCOL v14.0
-## FAANG-Standard Technical Quality Gates
+# RALPH PROTOCOL v15.0
+## Lean Quality Gates for a Startup That Ships
 
-**Version:** 14.0
-**Effective Date:** 2026-02-21
-**Status:** ACTIVE & MECHANICALLY ENFORCED
-**Owner:** AI Coder
+**Version:** 15.0
+**Effective Date:** 2026-02-22
+**Owner:** PM (Claude) — AI Coder reads this, does not modify it
 **Changelog:**
-- v14.0: 4-phase revamp. G2 requires `## Codebase Search`. G3 requires `## Design Reference` (UI), `## Success Metric`, `## Failure Signal`. New G14 PM Code Review gate. G11 verifies G3 observability fields. Gate sequence: G0→G1→G2→G3→G4→G5→G6→G7→G8→G9→G10→G13→G14→G11→G12.
-- v13.1: Added G13 (Antigravity Browser Walkthrough on Vercel PREVIEW URL before merge).
-- v13.0: Added G1 mechanical enforcement. Node.js runtime check in G0. Added G4, G8, G11 scripts. All 13 gates enforced.
-- v7.0: Added G1 mechanical enforcement. Node.js runtime check. Artifact naming clarification.
+- v15.0: Complete redesign. Scope tiers. Removed G0, G2, G8, G9, G10. CI is now the primary enforcement layer, not honor-system. Gates tied to real incidents only.
+- v14.0: Added G13 (browser walkthrough on preview), G14 (PM APPROVED), G3 observability fields.
+- v13.x: G1 enforcement, G11/G12 structure.
 
 ---
 
-## EXECUTIVE SUMMARY
+## Why v14.0 Failed
 
-Ralph Protocol ensures **FAANG-level code quality** through **14 sequential gates**. Every gate is mechanically enforced — there is no honor system. Gates cannot be skipped, reordered, or bypassed.
+v14.0 had 14 gates applied uniformly to every change. A nav link fix required the same gates as a payment flow. The result:
 
-**Gate Sequence (non-negotiable):**
+- Gates were skipped because they were obviously inapplicable (G10 Lighthouse on a nav link)
+- PM granted ad-hoc waivers with no protocol basis
+- Protocol became decoration, not enforcement
+- Real incident-prevention value was diluted by noise gates
+
+v15.0 fixes this with **scope tiers** and **mechanical CI enforcement**.
+
+---
+
+## Design Principles
+
+1. **Every gate must map to a real incident pattern.** If we cannot name the incident it prevents, the gate is cut.
+2. **Mechanical enforcement beats honor system.** CI that blocks bad merges is worth more than 10 documentation requirements.
+3. **PM classifies scope. AI Coder cannot self-promote.** Tier determines which gates apply. Only PM sets the tier.
+4. **Proportional process for proportional risk.** A nav link and a payment flow do not get the same gates.
+
+---
+
+## Incident → Gate Mapping
+
+| Incident | What Happened | Gate That Prevents It |
+|----------|--------------|----------------------|
+| INCIDENT-001 | `GITHUB_CLIENT_ID` undefined in Vercel. Worked locally. Broke in production. | G13 (preview URL, not localhost) + CI env parity check |
+| INCIDENT-002 | Built competing vertical sidebar when horizontal DashboardNav already existed. | G1 (component audit + codebase search) |
+| Self-merge | Antigravity merged its own PR without PM review. | G14 (PM APPROVED) + GitHub branch protection requiring 1 review |
+| Destructive revert | Antigravity reverted a PR without PM instruction, deleting unrelated files. | G14 + branch protection |
+
+**These four incidents are the entire justification for this protocol.** Every gate exists to prevent one of them.
+
+---
+
+## SCOPE TIERS (PM Sets This — AI Coder Cannot Change It)
+
+PM writes the tier into the PROJECT_LEDGER.md task entry before AI Coder starts work.
+
+| Tier | Criteria | Examples |
+|------|----------|---------|
+| **S — Small** | ≤50 lines changed, additive only, no new API routes, no auth changes, no DB mutations, follows existing pattern exactly | Nav link, copy change, icon swap, CSS tweak |
+| **M — Medium** | New UI components, new pages, refactors, non-auth API routes, new npm packages | New dashboard section, new API endpoint, component refactor |
+| **L — Large** | Auth flows, payments, DB schema changes, new external integrations (OAuth, Stripe, etc.), security-sensitive logic | Login system, checkout flow, new OAuth provider, DB migration |
+
+**Default when in doubt: one tier up.** If PM is unsure between S and M, assign M.
+
+---
+
+## GATES BY TIER
+
+| Gate | Name | Tier S | Tier M | Tier L |
+|------|------|--------|--------|--------|
+| **CI** | Build + Lint + Typecheck | ✅ Auto | ✅ Auto | ✅ Auto |
+| **G1** | Component Audit | ✅ | ✅ | ✅ |
+| **G3** | Blueprint & RFC | ❌ | ✅ | ✅ |
+| **G4** | Implementation Integrity | ✅ | ✅ | ✅ |
+| **G5** | Zero Lint Suppression | ✅ | ✅ | ✅ |
+| **G6** | Tests | ❌ | ✅ | ✅ |
+| **G7** | Security + Env Parity | ❌ | ❌ | ✅ |
+| **G13** | Browser Walkthrough (Preview) | ✅ | ✅ | ✅ |
+| **G14** | PM APPROVED | ✅ | ✅ | ✅ |
+| **G11** | Production Verification | ✅ | ✅ | ✅ |
+| **G12** | Documentation | ❌ | ✅ | ✅ |
+
+**Total gates per tier:**
+- Tier S: 6 gates (CI + G1 + G4 + G5 + G13 + G14 + G11)
+- Tier M: 9 gates (CI + G1 + G3 + G4 + G5 + G6 + G13 + G14 + G11 + G12)
+- Tier L: 10 gates (all of M + G7)
+
+---
+
+## GATE DEFINITIONS
+
+### CI — Build + Lint + Typecheck (Mechanical, Always On)
+
+**Enforced by:** GitHub Actions on every PR. Branch protection blocks merge if CI fails.
 
 ```
-G0 → G1 → G2 → G3 → G4 → G5 → G6 → G7 → G8 → G9 → G10 → G13 → G14 → G11 → G12
+npm run build       — zero errors
+npm run lint        — zero warnings
+npx tsc --noEmit    — zero TypeScript errors
 ```
 
-**The critical sequencing rules:**
-1. **G1 before G2** — Observe current state before researching. You cannot research without knowing what exists.
-2. **G2 before G3** — Research before planning. You cannot plan without knowing the landscape.
-3. **G3 before G4** — Approved plan before writing code. No code without sign-off.
-4. **G13 before G14** — Browser test the preview before PM reviews. PM reviews evidence, not just code.
-5. **G14 before G11** — PM approves before production merge. No production sign-off without human review.
+This is not a gate AI Coder runs manually. It runs automatically on every push. If CI fails, the PR cannot be merged — branch protection enforces this. AI Coder fixes CI failures before requesting PM review.
+
+**Env parity check also runs in CI:**
+Compares `.env.example` keys against available environment variables. If a key in `.env.example` is missing in CI, the build fails. This is the mechanical replacement for G0 and the prevention mechanism for INCIDENT-001.
 
 ---
 
-## THE 11 COMMANDMENTS
+### G1 — Component Audit (All Tiers)
 
-| # | Law | Rule | Severity | Enforcement |
-|---|-----|------|----------|-------------|
-| 1 | **Limit Law** | All SELECT queries must include LIMIT | P0 | Scanner blocks |
-| 2 | **Security Law** | Never use dangerouslySetInnerHTML without DOMPurify | P0 | Build fails |
-| 3 | **JSON-LD Law** | Always use safeJsonLd() utility | P0 | Scanner blocks |
-| 4 | **Revenue Law** | Payment code uses database, not in-memory | P0 | Deploy blocked |
-| 5 | **Sequential Law** | All 14 gates in strict order, no skipping | P0 | Audit log required |
-| 6 | **Proof Law** | Evidence = Logs + Screenshots + Git Hash | P0 | Logs required |
-| 7 | **Air-Gap Law** | DB writes via server-side only | P0 | Build fails |
-| 8 | **Context Law** | Reports anchor to Git HEAD | P1 | Hash verified |
-| 9 | **Semantic Law** | Commits reference TASK_ID | P1 | Hook rejects |
-| 10 | **Integrity Law** | Reports pass validation | P1 | Exit code blocks |
-| 11 | **RFC Law** | Plan has "Alternatives" + CEO/PM approval + Design Reference (UI) + Success Metric + Failure Signal | P0 | Hook rejects |
+**Purpose:** Prevents INCIDENT-002. Verify what exists before building anything.
 
----
+**Required before writing a single line of code.**
 
-## THE 14 QUALITY GATES
+AI Coder must:
+1. List all existing components relevant to the task area
+2. Run a codebase search proving the feature/component does not already exist
+3. Identify which files will be changed and why
 
-### PHASE 0: PRE-FLIGHT
+**Evidence required (Tier M/L):** `docs/reports/physical-audit-ENTRY-XXX.md`
 
-| Gate | Name | Script | Requirements | Enforcement |
-|------|------|--------|--------------|-------------|
-| **G0** | Environment & Runtime Pre-Flight | `gate-0-pre-assign.js` | Node.js ≥18 installed. All required env vars present. Services reachable. Generates `.env-validated.log`. | Blocks `npm run dev` and all commits |
+**Minimum for Tier S:** Codebase search result documented in the commit message or PR description.
 
-**What G0 validates:**
-- ✅ Node.js ≥18.0.0 installed (blocks immediately if absent)
-- ✅ npm/pnpm available
-- ✅ Required environment variables present
-- ✅ External services reachable (Supabase, etc.)
-- ✅ Generates `.env-validated.log`
-
----
-
-### PHASE 1: ASSESSMENT (MUST COMPLETE BEFORE PLANNING OR CODING)
-
-| Gate | Name | Script | Requirements | Enforcement |
-|------|------|--------|--------------|-------------|
-| **G1** | Physical Audit & State | `gate-1-physical-audit.js` | Directly observe current code + production. Document ≥50 lines anchored to git HEAD. List existing components (UI tasks). | Pre-dev hook blocks without audit file |
-| **G2** | External Research | `gate-2-research.js` | 3+ documented web searches. 5+ sources. Alternatives Considered. **`## Codebase Search` section required** (grep results proving feature doesn't already exist). 1000+ words. | Pre-commit hook blocks without research artifact |
-
-**G2 — `## Codebase Search` is mandatory:**
-
-The research document MUST contain a `## Codebase Search` (or `## Internal Search` or `## Existing Implementation`) section with evidence from searching the repo. This prevents re-building features that already exist — the root cause of INCIDENT-002.
-
-```markdown
-## Codebase Search
-
-Searched for existing [feature] implementations:
-
+**Codebase search format:**
+```
 $ grep -r "ComponentName" src/
-(no results)
+(no results — safe to build)
 
 $ grep -r "existing-pattern" src/components/
 (no results)
-
-Conclusion: Feature does not exist in codebase. Safe to build.
 ```
+
+If a result IS found: stop, report to PM, do not build a duplicate.
 
 ---
 
-### PHASE 2: PLANNING (MUST COMPLETE BEFORE CODING)
+### G3 — Blueprint & RFC (Tier M and L only)
 
-| Gate | Name | Script | Requirements | Enforcement |
-|------|------|--------|--------------|-------------|
-| **G3** | Blueprint & RFC | `gate-3-scope.js` | Implementation plan with Alternatives Considered. CEO/PM approval. **`## Design Reference` if UI.** **`## Success Metric` always required.** **`## Failure Signal` always required.** | Pre-commit hook checks for APPROVED signature |
+**Purpose:** No code without an approved plan. Prevents scope drift and wrong architecture.
 
-**G3 plan required sections:**
+PM must write `APPROVED` in the implementation plan before AI Coder writes code.
+
+**Required sections:**
 
 ```markdown
 ## Problem Statement
 [What problem are we solving?]
 
 ## Proposed Solution
-[What are we building?]
-
-## Alternatives Considered
-[What else did we consider and why did we reject it?]
+[What are we building? Which files change and why?]
 
 ## Design Reference
-[REQUIRED FOR UI FEATURES — Figma link, screenshot path, or written layout description]
-[Example: https://figma.com/file/... or docs/designs/dashboard-mockup.png]
-[Example: "Header at top, sidebar on left (250px), main content area on right"]
-
-## Files to Change
-- src/components/X.tsx — reason
-- src/app/Y/page.tsx — reason
+[REQUIRED IF ANY UI CHANGES — describe layout or link to design]
+[Example: "Follows existing DashboardNav pattern — horizontal sidebar link"]
 
 ## Success Metric
-[The single number/signal that proves this feature works]
-[Example: "Dashboard page loads with real user data for 100% of authenticated users"]
+[Single signal that proves this works]
+[Example: "/database loads 50 companies for authenticated users"]
 
 ## Failure Signal
-[The log line/error that indicates this feature is broken]
-[Example: "Error: Cannot read properties of undefined (reading 'user')" in console]
-[Example: "HTTP 500 on GET /api/dashboard" in server logs]
+[Error/log that indicates this is broken]
+[Example: "HTTP 500 on GET /database" or blank page with no console error]
 
-## Status: APPROVED — [PM Name] [Date]
+## Status: APPROVED — PM — YYYY-MM-DD
 ```
-
-**Why `## Success Metric` + `## Failure Signal` are mandatory:**
-Without these, there is no definition of "healthy." Operators cannot tell if the shipped feature is working or broken. These fields are verified again at G11 (production sign-off).
 
 ---
 
-### PHASE 3: EXECUTION (ONLY AFTER G1 + G2 + G3 COMPLETE)
+### G4 — Implementation Integrity (All Tiers)
 
-| Gate | Name | Script | Requirements | Enforcement |
-|------|------|--------|--------------|-------------|
-| **G4** | Implementation Integrity | `gate-4-implementation.js` | Execute approved plan. Scope creep >30% = blocked. | Runs during and after implementation |
-| **G5** | Strict Lint Suppression | `gate-5-lint-strict.js` | Zero unexplained `eslint-disable`, `@ts-ignore`, `@ts-nocheck` | Scans all changed files |
-| **G6** | Test Quality Analysis | `gate-6-test-quality.js` | ≥3 assertions/test. Real integration tests (not 100% mocked). No coverage regression. Every external integration (OAuth, Stripe, Supabase) must have ≥1 non-mocked test. | Analyzes test files |
-| **G7** | Security Suite | `gate-7-security.js` | Secrets detection (gitleaks + regex). `npm audit` (no critical/high CVEs). OWASP checklist. Environment variable parity check. | Blocks on secrets or critical CVEs |
-| **G8** | TDD Proof | `gate-8-tdd.js` | Tests exist, pass, ≥80% coverage. New source files must have test files. | Runs test suite + coverage parser |
-| **G9** | Accessibility Audit | `gate-9-accessibility.js` | Axe scan. Keyboard nav. ARIA labels. WCAG 2.1 AA. | Skip only if no UI changes |
+**Purpose:** Code matches the approved plan. No scope creep.
 
-**G6 — external integration rule (INCIDENT-001 lesson):**
-INCIDENT-001: 99 mocked tests passed. OAuth had `client_id=undefined` in production. Every external provider detected in source must have ≥1 test that verifies real configuration — not fully mocked.
+AI Coder must implement exactly what G3 describes (for M/L) or what the ledger task describes (for S).
 
-**G7 — environment parity rule (INCIDENT-001 lesson):**
-All variables in `.env.example` matching critical patterns (`CLIENT_ID`, `CLIENT_SECRET`, `API_KEY`, `SECRET`, `DATABASE_URL`) must be present in the current environment. Missing = BLOCKED.
+Scope creep >20% = stop, report to PM, get plan updated before continuing.
 
 ---
 
-### PHASE 4: VERIFICATION
+### G5 — Zero Lint Suppression (All Tiers)
 
-| Gate | Name | Script | Requirements | Enforcement |
-|------|------|--------|--------------|-------------|
-| **G10** | Performance | `gate-10-performance.js` | Lighthouse ≥80 (median 3 runs). Bundle size no regression >10%. | Lighthouse CI |
-| **G13** | Browser Walkthrough (Preview) | `gate-13-browser.js` | **Test the PREVIEW URL** (not localhost, not production). Mobile (375px) + desktop (1280px) screenshots. Console errors = 0. User flow checklist complete. **If G3 has `## Design Reference`: add `Matches design: YES/NO` to report.** | Browser test report required |
-| **G14** | PM Code Review | `gate-14-pm-review.js` | Antigravity posts **Code Review Summary** to PR body (files changed + why; files NOT changed + why). PM reviews code diff + summary and **comments "APPROVED"** on the PR. | APPROVED comment required on PR |
-| **G11** | Production Verification | `gate-11-production.js` | Production URL HTTP 200. Mobile + desktop screenshots. Human sign-off checklist (all `[x]`). **G3 plan must have `## Success Metric` + `## Failure Signal`.** | HTTP ping + screenshots + checklist + G3 plan check |
+**Purpose:** No technical debt injection.
 
-**G13 — why PREVIEW, not localhost (INCIDENT-001 lesson):**
-Localhost has local `.env` files that differ from what Vercel/Netlify deploys. INCIDENT-001: OAuth worked on localhost (`GITHUB_CLIENT_ID` was in `.env.local`) but failed on production (not in Vercel). Preview URL uses the SAME environment as production — missing env vars show up here before merge.
+Zero `eslint-disable`, `@ts-ignore`, `@ts-nocheck` in changed files without explicit PM approval documented in the PR.
 
-**G13 — design compliance check:**
-If the G3 plan has a `## Design Reference` section, the browser test report must include:
-```
-Matches design: YES
-```
-or:
-```
-Matches design: NO (reason: the sidebar is vertical but design shows horizontal tabs)
-```
-A "NO" is a warning (PM may have approved the deviation). A missing line = BLOCKED.
+This is verified by CI (lint step catches most cases) and manually by PM during G14 review.
 
-**G14 — Code Review Summary format (Antigravity writes this to the PR body):**
+---
+
+### G6 — Tests (Tier M and L only)
+
+**Purpose:** Regression protection for non-trivial changes.
+
+Tests are required for:
+- New API routes: at minimum one integration test verifying the route returns correct status
+- New business logic: unit tests covering main code paths
+- New components with user interaction: render tests verifying key behaviour
+
+**No coverage percentage requirement.** Tests must be real — not 100% mocked externals. At least one test per external integration must verify real configuration (not just mock it).
+
+**Not required for:**
+- Pure layout/styling components with no logic
+- Tier S changes
+
+---
+
+### G7 — Security + Env Parity (Tier L only)
+
+**Purpose:** Prevents secrets exposure and missing env vars for high-risk changes.
+
+Required for Tier L only because Tier L is where new external integrations and auth paths are introduced.
+
+1. `npm audit` — no critical or high CVEs
+2. No secrets or API keys in source code (CI scans for this)
+3. All new env vars added to `.env.example` with placeholder values
+4. All new env vars confirmed present in Vercel/production environment
+
+AI Coder reports G7 results in the PR description.
+
+---
+
+### G13 — Browser Walkthrough on Preview URL (All Tiers)
+
+**Purpose:** Prevents INCIDENT-001. Preview URL uses the same env as production — missing vars surface here.
+
+**Critical: Must be the Vercel PREVIEW URL, not localhost.**
+
+Localhost has local `.env.local` that differs from what Vercel deploys. Preview uses the exact same environment as production. This is the only way to catch missing env vars before merge.
+
+**Required report** (`docs/reports/browser-test-ENTRY-XXX.md`):
+```
+URL tested: https://bmn-site-git-feat-BRANCH-HASH.vercel.app  (NOT localhost)
+Breakpoints: 375px (mobile) + 1280px (desktop)
+Console errors: 0
+User flow: [checklist of key actions tested]
+Matches design: YES / NO + reason  (if G3 has Design Reference)
+```
+
+If the preview URL doesn't exist yet: push the branch, wait for Vercel to build it, then run G13.
+
+---
+
+### G14 — PM APPROVED (All Tiers)
+
+**Purpose:** Prevents self-merge. Ensures PM human eyes on every merge.
+
+AI Coder posts a **Code Review Summary** to the PR body:
 ```markdown
 ## Code Review Summary
 
 ### Files Changed
-- `src/components/Dashboard.tsx` — added user data display, connected to /api/dashboard
-- `src/app/api/dashboard/route.ts` — new endpoint returning user session data
+- `src/components/X.tsx` — reason
 
 ### Files NOT Changed
-- `src/components/Header.tsx` — layout unchanged, no reason to modify
-- `src/app/layout.tsx` — global layout unaffected by this feature
+- `src/components/Y.tsx` — intentionally unchanged because [reason]
 
-### Scope vs G3 Plan
-All changes match the approved G3 plan. No deviations.
+### Scope vs Plan
+All changes match approved G3 plan. / Deviations: [list any]
 ```
 
-**G14 — how PM approves:**
-PM reviews the code diff on GitHub + the Code Review Summary, then posts a comment:
-```
-APPROVED
-```
-That is all that is required. G14 checks for the word "APPROVED" in any PR comment.
+PM reviews the diff + summary and comments **"APPROVED"** on the PR.
 
-**G11 — observability check:**
-Before G11 passes, the gate script reads the G3 implementation plan and verifies `## Success Metric` and `## Failure Signal` are defined. If either is missing, G11 BLOCKS. This ensures operators know what "healthy" looks like before signing off on production.
+Branch protection requires 1 approving review before merge is possible. AI Coder cannot approve its own PR.
 
 ---
 
-### PHASE 5: DOCUMENTATION
+### G11 — Production Verification (All Tiers)
 
-| Gate | Name | Script | Requirements | Enforcement |
-|------|------|--------|--------------|-------------|
-| **G12** | Documentation & Walkthrough | `gate-12-validate.js` | What changed, why, how to use, rollback procedure. MASTER_TASK_LIST updated. | File existence + required sections |
+**Purpose:** Confirm the feature works in production after merge.
 
----
+After merge and deploy:
+1. Production URL returns HTTP 200
+2. Mobile (375px) + desktop (1280px) screenshots showing the feature works
+3. G3 Success Metric confirmed: the metric is observable and passing
+4. G3 Failure Signal checked: the error is NOT present
 
-## COMPLETE EVIDENCE REQUIREMENTS
-
-### Gate 0 (Pre-Flight)
-```
-✅ .env-validated.log    — npm run validate:env. Node.js ≥18 confirmed. Expires 24h.
-```
-
-### Gate 1 (Physical Audit)
-```
-✅ docs/reports/physical-audit-ENTRY_ID.md
-   - Git HEAD hash (git rev-parse HEAD)
-   - Current State Analysis
-   - Production State (URL, last deploy, current behavior)
-   - Existing Components (list all relevant UI components for UI tasks)
-   - Files/Dependency Analysis
-   - Known Issues
-   Minimum: 50 non-empty lines
-```
-
-### Gate 2 (Research)
-```
-✅ docs/research/ENTRY_ID-research.md   (preferred)
-   OR audit-gate-0-ENTRY_ID.log         (legacy, still accepted)
-   Required:
-   - ≥3 documented web searches (## Search #N headers)
-   - ≥5 source citations
-   - Alternatives Considered section
-   - Key Findings section
-   - ## Codebase Search section (grep results from the repo)   ← NEW v14.0
-   - ≥1000 words
-```
-
-### Gate 3 (Plan)
-```
-✅ implementation-plan-ENTRY_ID.md
-   Required:
-   - Problem Statement
-   - Proposed Solution
-   - Alternatives Considered
-   - Files to Change
-   - ## Design Reference (required if plan mentions any UI terms)  ← NEW v14.0
-   - ## Success Metric (always required)                           ← NEW v14.0
-   - ## Failure Signal (always required)                           ← NEW v14.0
-   - Status: APPROVED — [Name] [Date]
-```
-
-### Gates 4–10 (Execution + Performance)
-```
-✅ git commits on branch with TASK_ID in message
-✅ npm run build — PASSED
-✅ npm run lint — PASSED
-✅ npm run test — PASSED (coverage ≥80%)
-✅ Security scan — PASSED (no secrets, no critical CVEs, env parity)
-✅ Lighthouse ≥80
-```
-
-### Gate 13 (Browser Walkthrough — Preview)
-```
-✅ docs/reports/browser-test-ENTRY_ID.md
-   Required:
-   - Preview URL (Vercel/Netlify — NOT localhost, NOT production)
-   - Mobile screenshot (375px viewport)
-   - Desktop screenshot (1280px viewport)
-   - Console Errors: Count: 0
-   - User Flow Checklist (all [x])
-   - Matches design: YES/NO   ← required if G3 plan has ## Design Reference
-```
-
-### Gate 14 (PM Code Review)
-```
-✅ PR body contains "## Code Review Summary"
-   - Files changed + reason
-   - Files NOT changed + reason
-✅ PR has comment containing "APPROVED"
-   Usage: node scripts/gates/gate-14-pm-review.js ENTRY-XXX PR_NUMBER
-```
-
-### Gate 11 (Production Verification)
-```
-✅ docs/reports/production-verification-ENTRY_ID.md
-   Required:
-   - Deployment Timestamp
-   - Deployment ID
-   - Production URL (HTTP 200 verified)
-   - Mobile screenshot (375px)
-   - Desktop screenshot (1280px)
-   - Manual Verification Checklist (all [x])
-   - Health Check Results
-✅ G3 plan has ## Success Metric + ## Failure Signal    ← verified by G11 script
-```
-
-### Gate 12 (Documentation)
-```
-✅ docs/walkthroughs/walkthrough-ENTRY_ID.md
-   Required sections: What Changed, Why, How to Use, Rollback Procedure
-```
+Report filed in `docs/reports/production-verification-ENTRY-XXX.md`.
 
 ---
 
-## ENFORCEMENT MECHANISMS
+### G12 — Documentation (Tier M and L only)
 
-### Pre-dev Hook (checks G0 + G1 + G2)
+**Purpose:** Future maintainers (including future AI Coders) can understand what was built and why.
 
-```bash
-#!/bin/bash
-# .git/hooks/pre-dev
-
-set -e
-
-# Gate 0: Node.js must be installed
-if ! command -v node &> /dev/null; then
-  echo "❌ BLOCKED: Node.js not found."
-  echo "Install Node.js ≥18: https://nodejs.org"
-  exit 1
-fi
-
-NODE_MAJOR=$(node -e "process.stdout.write(process.version.match(/^v(\d+)/)[1])")
-if [ "$NODE_MAJOR" -lt 18 ]; then
-  echo "❌ BLOCKED: Node.js $NODE_MAJOR found, require ≥18"
-  exit 1
-fi
-
-# Gate 0: Environment validated
-if [ ! -f ".env-validated.log" ] && [ ! -f "bmn-site/.env-validated.log" ]; then
-  echo "❌ BLOCKED: Environment not validated. Run: npm run validate:env"
-  exit 1
-fi
-
-TASK_ID=$(git branch --show-current | grep -oE 'ENTRY-[A-Za-z0-9._-]+' || echo "unknown")
-
-# Gate 1: Physical audit must exist
-AUDIT_FOUND=false
-for p in "docs/reports/physical-audit-${TASK_ID}.md" "bmn-site/docs/reports/physical-audit-${TASK_ID}.md"; do
-  [ -f "$p" ] && AUDIT_FOUND=true && break
-done
-if [ "$AUDIT_FOUND" = false ] && [ "$TASK_ID" != "unknown" ]; then
-  echo "❌ BLOCKED: Gate 1 (Physical Audit) not complete."
-  echo "Create: docs/reports/physical-audit-${TASK_ID}.md (≥50 lines, anchored to git HEAD)"
-  exit 1
-fi
-
-# Gate 2: Research must exist
-RESEARCH_FOUND=false
-for p in \
-  "docs/research/${TASK_ID}-research.md" \
-  "audit-gate-0-${TASK_ID}.log" \
-  "bmn-site/docs/research/${TASK_ID}-research.md" \
-  "bmn-site/audit-gate-0-${TASK_ID}.log"; do
-  [ -f "$p" ] && RESEARCH_FOUND=true && break
-done
-if [ "$RESEARCH_FOUND" = false ] && [ "$TASK_ID" != "unknown" ]; then
-  echo "❌ BLOCKED: Gate 2 (Research) not complete."
-  echo "Create: docs/research/${TASK_ID}-research.md"
-  echo "Must include: ## Codebase Search section (v14.0 requirement)"
-  exit 1
-fi
-
-echo "✅ Pre-dev gates passed (G0, G1, G2)"
-```
-
-### Pre-commit Hook (checks G0 + G1 + G2 + G3 + build)
-
-```bash
-#!/bin/bash
-# .git/hooks/pre-commit
-
-set -e
-
-if ! command -v node &> /dev/null; then
-  echo "❌ BLOCKED: Node.js not found. Install Node.js ≥18."
-  exit 1
-fi
-
-if [ ! -f ".env-validated.log" ] && [ ! -f "bmn-site/.env-validated.log" ]; then
-  echo "❌ BLOCKED: Run 'npm run validate:env' first"
-  exit 1
-fi
-
-TASK_ID=$(git branch --show-current | grep -oE 'ENTRY-[A-Za-z0-9._-]+' || echo "unknown")
-
-if [ "$TASK_ID" != "unknown" ]; then
-  # Gate 1
-  AUDIT_FOUND=false
-  for p in "docs/reports/physical-audit-${TASK_ID}.md" "bmn-site/docs/reports/physical-audit-${TASK_ID}.md"; do
-    [ -f "$p" ] && AUDIT_FOUND=true && break
-  done
-  [ "$AUDIT_FOUND" = false ] && echo "❌ BLOCKED: No physical audit found. Complete Gate 1." && exit 1
-
-  # Gate 2
-  RESEARCH_FOUND=false
-  for p in \
-    "docs/research/${TASK_ID}-research.md" \
-    "audit-gate-0-${TASK_ID}.log" \
-    "bmn-site/docs/research/${TASK_ID}-research.md" \
-    "bmn-site/audit-gate-0-${TASK_ID}.log"; do
-    [ -f "$p" ] && RESEARCH_FOUND=true && break
-  done
-  [ "$RESEARCH_FOUND" = false ] && echo "❌ BLOCKED: No research artifact found. Complete Gate 2 with ## Codebase Search." && exit 1
-
-  # Gate 3
-  PLAN_PATH="implementation-plan-${TASK_ID}.md"
-  [ ! -f "$PLAN_PATH" ] && PLAN_PATH="bmn-site/implementation-plan-${TASK_ID}.md"
-  if [ ! -f "$PLAN_PATH" ]; then
-    echo "❌ BLOCKED: No implementation plan found. Complete Gate 3."
-    exit 1
-  fi
-  if ! grep -q "APPROVED" "$PLAN_PATH"; then
-    echo "❌ BLOCKED: Plan not approved by PM/CEO."
-    exit 1
-  fi
-fi
-
-cd bmn-site 2>/dev/null || true
-npm run build || { echo "❌ BLOCKED: Build failed"; exit 1; }
-npm run lint  || { echo "❌ BLOCKED: Lint failed"; exit 1; }
-npm run test  || { echo "❌ BLOCKED: Tests failed"; exit 1; }
-
-echo "✅ All Ralph gates passed — commit allowed"
-```
+Required sections in `docs/walkthroughs/walkthrough-ENTRY-XXX.md`:
+- What changed
+- Why it was changed
+- How to verify it's working
+- How to roll back if it breaks
 
 ---
 
-## BYPASS PREVENTION
+## WHAT WAS REMOVED AND WHY
 
-| Mechanism | Prevents |
-|-----------|----------|
-| Node.js runtime check in G0 | Agents without Node.js producing fake static analysis |
-| Pre-dev hook checks G1 + G2 | Starting work without physical audit or research |
-| Pre-commit hook checks G1 + G2 + G3 | Committing without audit, research, or approved plan |
-| G2 requires `## Codebase Search` | Building features that already exist (INCIDENT-002) |
-| G3 requires `## Design Reference` (UI) | Antigravity guessing layouts instead of following design |
-| G3 requires `## Success Metric` | Shipping with no definition of "working" |
-| G3 requires `## Failure Signal` | Shipping with no way to detect breakage |
-| G13 requires preview URL (not localhost) | Missing env vars going undetected before merge (INCIDENT-001) |
-| G13 requires design compliance confirmation | UI deviating from approved design without PM notice |
-| G14 requires PM APPROVED comment on PR | Antigravity self-certifying its own work |
-| G14 requires Code Review Summary | PM reviewing blindly without knowing what changed |
-| G11 verifies G3 Success Metric + Failure Signal | Signing off on production with no observability |
-| G11 requires mobile + desktop screenshots | Blank pages returning HTTP 200 passing as "working" |
-| G11 requires human sign-off checklist | PM approving without opening the live URL (INCIDENT-001) |
-| HMAC cryptographic proofs | Forged local proof files |
-| CI/CD required status checks | Merging PRs without all gates |
+| Removed | Reason |
+|---------|--------|
+| **G0 — .env-validated.log ceremony** | Replaced by automated env parity check in CI. Mechanical enforcement beats manual ceremony. |
+| **G2 — Web research (3+ searches, 1000 words)** | Never caught an incident. Codebase search (the only useful part) is now in G1. External research is AI Coder's baseline competence, not a gate. |
+| **G8 — 80% test coverage** | Unmaintainable at startup velocity. Produces test theater — tests written to hit a number, not to catch bugs. Replaced by G6 which requires real tests for real paths. |
+| **G9 — Axe scan per PR** | Run quarterly as a team-wide audit, not per PR. A nav link following existing accessible patterns does not need an axe scan. |
+| **G10 — Lighthouse per PR** | Run monthly as a team-wide audit. Lighthouse score doesn't change per nav link. Per-PR Lighthouse is noise. |
 
 ---
 
-**Created:** 2026-02-09
-**v14.0:** 2026-02-21
-**Status:** ACTIVE & ENFORCED
-**Escalation:** Any bypass attempt = P0 incident report
+## MECHANICAL ENFORCEMENT SUMMARY
+
+These mechanisms are PM-controlled. AI Coder cannot bypass them.
+
+| Mechanism | What It Blocks |
+|-----------|---------------|
+| GitHub Actions CI (build + lint + tsc) | Broken builds, lint errors, TypeScript errors merging to main |
+| CI env parity check | Missing env vars shipping to production (INCIDENT-001 class) |
+| Branch protection: require CI pass | Any PR that fails CI cannot be merged |
+| Branch protection: require 1 PR review | AI Coder cannot merge its own PRs (self-merge incident) |
+| G13 requires Vercel preview URL | Using localhost to hide env var issues (INCIDENT-001) |
+| G14 PM APPROVED comment | Work shipping without PM human review |
+
+---
+
+## QUARTERLY AUDITS (Not Per-PR)
+
+These run as scheduled tasks, not on every PR:
+
+- **Accessibility audit (axe)** — quarterly, PM-scheduled
+- **Lighthouse performance audit** — monthly, PM-scheduled
+- **Full npm audit** — monthly in CI as non-blocking, blocking for Tier L
+
+---
+
+## PROJECT LEDGER FORMAT (PM fills this before task starts)
+
+```markdown
+## ENTRY-X.Y — [Task name]
+
+**Tier:** S / M / L
+**Reason for tier:** [one sentence]
+**Gates required:** [list from tier table]
+**Success Metric:** [what working looks like]
+**Failure Signal:** [what broken looks like]
+```
+
+AI Coder does not start work until this section exists in the ledger.
+
+---
+
+**v15.0 — 2026-02-22**
+**Owner: PM (Claude)**
+**AI Coder: read-only**
