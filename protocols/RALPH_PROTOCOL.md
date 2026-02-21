@@ -1,122 +1,34 @@
-# 🦅 RALPH PROTOCOL v7.0
+# 🦅 RALPH PROTOCOL v14.0
 ## FAANG-Standard Technical Quality Gates
 
-**Version:** 7.0 (Complete Gate Coverage + Runtime Validation)
+**Version:** 14.0
 **Effective Date:** 2026-02-21
 **Status:** ACTIVE & MECHANICALLY ENFORCED
 **Owner:** AI Coder
 **Changelog:**
-- v7.0: Added Gate 1 mechanical enforcement (was documented but unenforced).
-  Added Node.js runtime check to Gate 0. Fixed artifact naming confusion.
-  All 12 gates now have scripts. Gate sequence made explicit and unskippable.
+- v14.0: 4-phase revamp. G2 requires `## Codebase Search`. G3 requires `## Design Reference` (UI), `## Success Metric`, `## Failure Signal`. New G14 PM Code Review gate. G11 verifies G3 observability fields. Gate sequence: G0→G1→G2→G3→G4→G5→G6→G7→G8→G9→G10→G13→G14→G11→G12.
+- v13.1: Added G13 (Antigravity Browser Walkthrough on Vercel PREVIEW URL before merge).
+- v13.0: Added G1 mechanical enforcement. Node.js runtime check in G0. Added G4, G8, G11 scripts. All 13 gates enforced.
+- v7.0: Added G1 mechanical enforcement. Node.js runtime check. Artifact naming clarification.
 
 ---
 
 ## EXECUTIVE SUMMARY
 
-Ralph Protocol ensures **FAANG-level code quality** through **12 sequential gates** and **11 non-negotiable commandments**. Every gate is mechanically enforced — there is no honor system.
+Ralph Protocol ensures **FAANG-level code quality** through **14 sequential gates**. Every gate is mechanically enforced — there is no honor system. Gates cannot be skipped, reordered, or bypassed.
 
-**Gate Sequence (non-negotiable order):**
+**Gate Sequence (non-negotiable):**
 
 ```
-G0 → G1 → G2 → G3 → G4 → G5 → G6 → G7 → G8 → G9 → G10 → G11 → G12
+G0 → G1 → G2 → G3 → G4 → G5 → G6 → G7 → G8 → G9 → G10 → G13 → G14 → G11 → G12
 ```
 
-**The three most important sequencing rules:**
-1. **G1 before G2**: You MUST observe the current state before researching. You cannot research effectively without knowing what exists.
-2. **G2 before G3**: You MUST research before planning. You cannot plan without knowing the landscape.
-3. **G3 before G4**: You MUST have an approved plan before writing code. No code without approval.
-
----
-
-## 🆕 v7.0 ENHANCEMENTS
-
-### Fix 1: Gate 1 Now Has Mechanical Enforcement
-
-**Problem:** Gate 1 (Physical Audit) was documented but had no script. Any agent could skip it.
-
-**Fix:** New script `scripts/gates/gate-1-physical-audit.js` enforces:
-- A physical audit document must exist (`docs/reports/physical-audit-ENTRY_ID.md`)
-- Document must be anchored to current git HEAD hash
-- Document must be ≥50 non-empty lines
-- Document must contain: Current State, Git History, Production State, Files/Dependency sections
-- Pre-dev hook now checks for BOTH G1 artifact AND G2 artifact (was only G2)
-
-### Fix 2: Node.js Runtime Check in Gate 0
-
-**Problem:** Gate 0 validated env vars and connectivity but never confirmed Node.js was installed. Agents without Node.js produced static guesses instead of real output.
-
-**Fix:** Gate 0 now fails immediately if:
-- Node.js is not installed
-- Node.js version is below 18.0.0
-- npm/pnpm is not available
-
-**Error message:** Clear install instructions with exact required version.
-
-### Fix 3: Artifact Naming Clarification
-
-**The historical naming confusion:**
-```
-audit-gate-0-TASK_ID.log  ← CONFUSINGLY NAMED (it's the G2 research artifact)
-```
-
-This file was named "gate-0" because it predates the formal gate numbering system.
-It has always been the **Gate 2 (Research)** artifact, not Gate 0.
-
-**Accepted artifact locations (both valid):**
-- `docs/research/ENTRY_ID-research.md` ← **NEW PREFERRED** (explicit, organized)
-- `audit-gate-0-ENTRY_ID.log` ← **LEGACY ACCEPTED** (backward compatible)
-
-New projects MUST use `docs/research/`. Existing projects can keep using legacy path.
-Verification scripts accept both.
-
-### Fix 4: Gate 4, 8, and 11 Scripts Added
-
-New scripts that were previously absent:
-- `scripts/gates/gate-4-implementation.js` — scope creep detection
-- `scripts/gates/gate-8-tdd.js` — test coverage enforcement
-- `scripts/gates/gate-11-production.js` — production health check
-
----
-
-## GATE 0: Environment & Runtime Pre-Flight
-
-**Script:** `scripts/gates/gate-0-pre-assign.js`
-
-Before ANY work begins:
-
-```bash
-npm run validate:env
-```
-
-**What it validates (v7.0):**
-1. ✅ **Node.js ≥18.0.0 installed** (NEW — blocks immediately if absent)
-2. ✅ npm or pnpm available
-3. ✅ All required environment variables present and correctly formatted
-4. ✅ Supabase URL is accessible (active HTTP ping)
-5. ✅ Supabase Auth service responds to health checks
-6. ✅ Local ports match configuration (prevents 54321 vs 55321 mismatches)
-7. ✅ Generates `.env-validated.log` as proof of validation
-
-**Enforcement:**
-- `predev` hook: Blocks `npm run dev` if Node.js absent or env invalid
-- Pre-commit hook: Rejects commits without `.env-validated.log`
-- Validation expires after 24 hours (warning shown, hard block after 48h)
-
-**Node.js not found error:**
-```
-❌ BLOCKED: Node.js not found on this machine.
-
-Gate 0 requires Node.js ≥18.0.0 to run this project.
-
-Install options:
-  macOS:   brew install node@20
-  Linux:   https://nodejs.org/en/download/package-manager
-  nvm:     nvm install 20 && nvm use 20
-
-Cannot proceed without Node.js. All gate checks will produce
-inaccurate static analysis instead of real validation.
-```
+**The critical sequencing rules:**
+1. **G1 before G2** — Observe current state before researching. You cannot research without knowing what exists.
+2. **G2 before G3** — Research before planning. You cannot plan without knowing the landscape.
+3. **G3 before G4** — Approved plan before writing code. No code without sign-off.
+4. **G13 before G14** — Browser test the preview before PM reviews. PM reviews evidence, not just code.
+5. **G14 before G11** — PM approves before production merge. No production sign-off without human review.
 
 ---
 
@@ -128,80 +40,179 @@ inaccurate static analysis instead of real validation.
 | 2 | **Security Law** | Never use dangerouslySetInnerHTML without DOMPurify | P0 | Build fails |
 | 3 | **JSON-LD Law** | Always use safeJsonLd() utility | P0 | Scanner blocks |
 | 4 | **Revenue Law** | Payment code uses database, not in-memory | P0 | Deploy blocked |
-| 5 | **Sequential Law** | All 12 gates in strict order, no skipping | P0 | Audit log required |
+| 5 | **Sequential Law** | All 14 gates in strict order, no skipping | P0 | Audit log required |
 | 6 | **Proof Law** | Evidence = Logs + Screenshots + Git Hash | P0 | Logs required |
 | 7 | **Air-Gap Law** | DB writes via server-side only | P0 | Build fails |
 | 8 | **Context Law** | Reports anchor to Git HEAD | P1 | Hash verified |
 | 9 | **Semantic Law** | Commits reference TASK_ID | P1 | Hook rejects |
 | 10 | **Integrity Law** | Reports pass validation | P1 | Exit code blocks |
-| 11 | **RFC Law** | Plan has "Alternatives" + CEO/PM approval | P0 | Hook rejects |
+| 11 | **RFC Law** | Plan has "Alternatives" + CEO/PM approval + Design Reference (UI) + Success Metric + Failure Signal | P0 | Hook rejects |
 
 ---
 
-## THE 12 QUALITY GATES
+## THE 14 QUALITY GATES
 
-### PHASE 0: PRE-FLIGHT (BEFORE ANYTHING ELSE)
+### PHASE 0: PRE-FLIGHT
 
-| Gate | Name | Script | Time | Requirements | Enforcement |
-|------|------|--------|------|--------------|-------------|
-| **G0** | Environment & Runtime Pre-Flight | `gate-0-pre-assign.js` | 5m | **Node.js ≥18 installed**, env vars present, services reachable | Blocks `npm run dev` and all commits |
+| Gate | Name | Script | Requirements | Enforcement |
+|------|------|--------|--------------|-------------|
+| **G0** | Environment & Runtime Pre-Flight | `gate-0-pre-assign.js` | Node.js ≥18 installed. All required env vars present. Services reachable. Generates `.env-validated.log`. | Blocks `npm run dev` and all commits |
+
+**What G0 validates:**
+- ✅ Node.js ≥18.0.0 installed (blocks immediately if absent)
+- ✅ npm/pnpm available
+- ✅ Required environment variables present
+- ✅ External services reachable (Supabase, etc.)
+- ✅ Generates `.env-validated.log`
 
 ---
 
 ### PHASE 1: ASSESSMENT (MUST COMPLETE BEFORE PLANNING OR CODING)
 
-| Gate | Name | Script | Time | Requirements | Enforcement |
-|------|------|--------|------|--------------|-------------|
-| **G1** | Physical Audit & State | `gate-1-physical-audit.js` | 1-2h | Directly observe current code + production. Document in `docs/reports/physical-audit-ENTRY_ID.md` anchored to git HEAD. ≥50 lines. | Pre-dev hook blocks without audit file |
-| **G2** | Logic Mapping & Research | `gate-2-research.js` | 2-3h | **3+ web searches documented**. 5+ sources. Alternatives Considered. 1000+ words. Dependency analysis. | Pre-commit hook blocks without research artifact |
+| Gate | Name | Script | Requirements | Enforcement |
+|------|------|--------|--------------|-------------|
+| **G1** | Physical Audit & State | `gate-1-physical-audit.js` | Directly observe current code + production. Document ≥50 lines anchored to git HEAD. List existing components (UI tasks). | Pre-dev hook blocks without audit file |
+| **G2** | External Research | `gate-2-research.js` | 3+ documented web searches. 5+ sources. Alternatives Considered. **`## Codebase Search` section required** (grep results proving feature doesn't already exist). 1000+ words. | Pre-commit hook blocks without research artifact |
 
-**🚨 G1 MUST PRECEDE G2:**
-You cannot conduct meaningful research without first directly observing what exists.
-The physical audit (G1) tells you WHAT to research.
+**G2 — `## Codebase Search` is mandatory:**
 
-**Research artifact naming:**
-- **New projects:** `docs/research/ENTRY_ID-research.md`
-- **Legacy projects:** `audit-gate-0-ENTRY_ID.log` (accepted, but migrate when possible)
+The research document MUST contain a `## Codebase Search` (or `## Internal Search` or `## Existing Implementation`) section with evidence from searching the repo. This prevents re-building features that already exist — the root cause of INCIDENT-002.
+
+```markdown
+## Codebase Search
+
+Searched for existing [feature] implementations:
+
+$ grep -r "ComponentName" src/
+(no results)
+
+$ grep -r "existing-pattern" src/components/
+(no results)
+
+Conclusion: Feature does not exist in codebase. Safe to build.
+```
 
 ---
 
 ### PHASE 2: PLANNING (MUST COMPLETE BEFORE CODING)
 
-| Gate | Name | Script | Time | Requirements | Enforcement |
-|------|------|--------|------|--------------|-------------|
-| **G3** | Blueprint & RFC | `gate-3-scope.js` | 1-2h | Implementation plan with "Alternatives Considered", "Files to Change", CEO/PM approval signature | Pre-commit hook checks for APPROVED signature |
+| Gate | Name | Script | Requirements | Enforcement |
+|------|------|--------|--------------|-------------|
+| **G3** | Blueprint & RFC | `gate-3-scope.js` | Implementation plan with Alternatives Considered. CEO/PM approval. **`## Design Reference` if UI.** **`## Success Metric` always required.** **`## Failure Signal` always required.** | Pre-commit hook checks for APPROVED signature |
 
-**NO CODE BEFORE G3 APPROVAL.** This is mechanically enforced.
+**G3 plan required sections:**
+
+```markdown
+## Problem Statement
+[What problem are we solving?]
+
+## Proposed Solution
+[What are we building?]
+
+## Alternatives Considered
+[What else did we consider and why did we reject it?]
+
+## Design Reference
+[REQUIRED FOR UI FEATURES — Figma link, screenshot path, or written layout description]
+[Example: https://figma.com/file/... or docs/designs/dashboard-mockup.png]
+[Example: "Header at top, sidebar on left (250px), main content area on right"]
+
+## Files to Change
+- src/components/X.tsx — reason
+- src/app/Y/page.tsx — reason
+
+## Success Metric
+[The single number/signal that proves this feature works]
+[Example: "Dashboard page loads with real user data for 100% of authenticated users"]
+
+## Failure Signal
+[The log line/error that indicates this feature is broken]
+[Example: "Error: Cannot read properties of undefined (reading 'user')" in console]
+[Example: "HTTP 500 on GET /api/dashboard" in server logs]
+
+## Status: APPROVED — [PM Name] [Date]
+```
+
+**Why `## Success Metric` + `## Failure Signal` are mandatory:**
+Without these, there is no definition of "healthy." Operators cannot tell if the shipped feature is working or broken. These fields are verified again at G11 (production sign-off).
 
 ---
 
 ### PHASE 3: EXECUTION (ONLY AFTER G1 + G2 + G3 COMPLETE)
 
-| Gate | Name | Script | Time | Requirements | Enforcement |
-|------|------|--------|------|--------------|-------------|
-| **G4** | Implementation Integrity | `gate-4-implementation.js` | Varies | Execute approved plan. Scope creep >30% = blocked. | Runs during and after implementation |
-| **G5** | Strict Lint Suppression | `gate-5-lint-strict.js` | 15m | Zero unexplained `eslint-disable`, `@ts-ignore`, `@ts-nocheck` | Scans all changed files |
-| **G6** | Test Quality Analysis | `gate-6-test-quality.js` | 30m | ≥3 assertions/test, <80% mock ratio, real integration tests | Analyzes test files |
-| **G7** | Security Suite | `gate-7-security.js` | 30m | Secrets detection, `npm audit` (no critical/high CVEs), OWASP checklist | Blocks on any secrets or critical CVEs |
-| **G8** | TDD Proof | `gate-8-tdd.js` | 2-4h | Tests must exist, pass, ≥80% coverage. New source files must have test files. | Runs test suite + coverage parser |
-| **G9** | Accessibility Audit | `gate-9-accessibility.js` | 1h | Axe scan, keyboard nav, ARIA labels. WCAG 2.1 AA. | Skip only if no UI changes |
+| Gate | Name | Script | Requirements | Enforcement |
+|------|------|--------|--------------|-------------|
+| **G4** | Implementation Integrity | `gate-4-implementation.js` | Execute approved plan. Scope creep >30% = blocked. | Runs during and after implementation |
+| **G5** | Strict Lint Suppression | `gate-5-lint-strict.js` | Zero unexplained `eslint-disable`, `@ts-ignore`, `@ts-nocheck` | Scans all changed files |
+| **G6** | Test Quality Analysis | `gate-6-test-quality.js` | ≥3 assertions/test. Real integration tests (not 100% mocked). No coverage regression. Every external integration (OAuth, Stripe, Supabase) must have ≥1 non-mocked test. | Analyzes test files |
+| **G7** | Security Suite | `gate-7-security.js` | Secrets detection (gitleaks + regex). `npm audit` (no critical/high CVEs). OWASP checklist. Environment variable parity check. | Blocks on secrets or critical CVEs |
+| **G8** | TDD Proof | `gate-8-tdd.js` | Tests exist, pass, ≥80% coverage. New source files must have test files. | Runs test suite + coverage parser |
+| **G9** | Accessibility Audit | `gate-9-accessibility.js` | Axe scan. Keyboard nav. ARIA labels. WCAG 2.1 AA. | Skip only if no UI changes |
+
+**G6 — external integration rule (INCIDENT-001 lesson):**
+INCIDENT-001: 99 mocked tests passed. OAuth had `client_id=undefined` in production. Every external provider detected in source must have ≥1 test that verifies real configuration — not fully mocked.
+
+**G7 — environment parity rule (INCIDENT-001 lesson):**
+All variables in `.env.example` matching critical patterns (`CLIENT_ID`, `CLIENT_SECRET`, `API_KEY`, `SECRET`, `DATABASE_URL`) must be present in the current environment. Missing = BLOCKED.
 
 ---
 
 ### PHASE 4: VERIFICATION
 
-| Gate | Name | Script | Time | Requirements | Enforcement |
-|------|------|--------|------|--------------|-------------|
-| **G10** | Performance | `gate-10-performance.js` | 30m | Lighthouse ≥80 (median 3 runs), bundle size no regression >10% | Lighthouse CI against staging |
-| **G11** | Production Verification | `gate-11-production.js` | 1h + 24h | Live deployment, production URL HTTP 200, screenshot evidence, health check, 24h monitoring sign-off | HTTP ping + screenshot file check |
+| Gate | Name | Script | Requirements | Enforcement |
+|------|------|--------|--------------|-------------|
+| **G10** | Performance | `gate-10-performance.js` | Lighthouse ≥80 (median 3 runs). Bundle size no regression >10%. | Lighthouse CI |
+| **G13** | Browser Walkthrough (Preview) | `gate-13-browser.js` | **Test the PREVIEW URL** (not localhost, not production). Mobile (375px) + desktop (1280px) screenshots. Console errors = 0. User flow checklist complete. **If G3 has `## Design Reference`: add `Matches design: YES/NO` to report.** | Browser test report required |
+| **G14** | PM Code Review | `gate-14-pm-review.js` | Antigravity posts **Code Review Summary** to PR body (files changed + why; files NOT changed + why). PM reviews code diff + summary and **comments "APPROVED"** on the PR. | APPROVED comment required on PR |
+| **G11** | Production Verification | `gate-11-production.js` | Production URL HTTP 200. Mobile + desktop screenshots. Human sign-off checklist (all `[x]`). **G3 plan must have `## Success Metric` + `## Failure Signal`.** | HTTP ping + screenshots + checklist + G3 plan check |
+
+**G13 — why PREVIEW, not localhost (INCIDENT-001 lesson):**
+Localhost has local `.env` files that differ from what Vercel/Netlify deploys. INCIDENT-001: OAuth worked on localhost (`GITHUB_CLIENT_ID` was in `.env.local`) but failed on production (not in Vercel). Preview URL uses the SAME environment as production — missing env vars show up here before merge.
+
+**G13 — design compliance check:**
+If the G3 plan has a `## Design Reference` section, the browser test report must include:
+```
+Matches design: YES
+```
+or:
+```
+Matches design: NO (reason: the sidebar is vertical but design shows horizontal tabs)
+```
+A "NO" is a warning (PM may have approved the deviation). A missing line = BLOCKED.
+
+**G14 — Code Review Summary format (Antigravity writes this to the PR body):**
+```markdown
+## Code Review Summary
+
+### Files Changed
+- `src/components/Dashboard.tsx` — added user data display, connected to /api/dashboard
+- `src/app/api/dashboard/route.ts` — new endpoint returning user session data
+
+### Files NOT Changed
+- `src/components/Header.tsx` — layout unchanged, no reason to modify
+- `src/app/layout.tsx` — global layout unaffected by this feature
+
+### Scope vs G3 Plan
+All changes match the approved G3 plan. No deviations.
+```
+
+**G14 — how PM approves:**
+PM reviews the code diff on GitHub + the Code Review Summary, then posts a comment:
+```
+APPROVED
+```
+That is all that is required. G14 checks for the word "APPROVED" in any PR comment.
+
+**G11 — observability check:**
+Before G11 passes, the gate script reads the G3 implementation plan and verifies `## Success Metric` and `## Failure Signal` are defined. If either is missing, G11 BLOCKS. This ensures operators know what "healthy" looks like before signing off on production.
 
 ---
 
 ### PHASE 5: DOCUMENTATION
 
-| Gate | Name | Script | Time | Requirements | Enforcement |
-|------|------|--------|------|--------------|-------------|
-| **G12** | Documentation & Walkthrough | `gate-12-validate.js` | 30m | What changed, why, how to use, rollback procedure. MASTER_TASK_LIST updated. | File existence + required sections check |
+| Gate | Name | Script | Requirements | Enforcement |
+|------|------|--------|--------------|-------------|
+| **G12** | Documentation & Walkthrough | `gate-12-validate.js` | What changed, why, how to use, rollback procedure. MASTER_TASK_LIST updated. | File existence + required sections |
 
 ---
 
@@ -209,64 +220,91 @@ The physical audit (G1) tells you WHAT to research.
 
 ### Gate 0 (Pre-Flight)
 ```
-✅ .env-validated.log              — Generated by: npm run validate:env
-                                     Node.js version confirmed ≥18
-                                     Expires: 24h (warning) / 48h (hard block)
+✅ .env-validated.log    — npm run validate:env. Node.js ≥18 confirmed. Expires 24h.
 ```
 
 ### Gate 1 (Physical Audit)
 ```
 ✅ docs/reports/physical-audit-ENTRY_ID.md
-   Required content:
-   - Current git HEAD hash
-   - Current State Analysis (what exists now)
+   - Git HEAD hash (git rev-parse HEAD)
+   - Current State Analysis
    - Production State (URL, last deploy, current behavior)
+   - Existing Components (list all relevant UI components for UI tasks)
    - Files/Dependency Analysis
    - Known Issues
-   Minimum: 50 non-empty lines, no unfilled placeholders
+   Minimum: 50 non-empty lines
 ```
 
 ### Gate 2 (Research)
 ```
-✅ docs/research/ENTRY_ID-research.md   (NEW preferred path)
-   OR audit-gate-0-ENTRY_ID.log         (legacy path, still accepted)
-   Required content:
-   - ≥3 documented web searches (## Search #N sections)
+✅ docs/research/ENTRY_ID-research.md   (preferred)
+   OR audit-gate-0-ENTRY_ID.log         (legacy, still accepted)
+   Required:
+   - ≥3 documented web searches (## Search #N headers)
    - ≥5 source citations
    - Alternatives Considered section
    - Key Findings section
+   - ## Codebase Search section (grep results from the repo)   ← NEW v14.0
    - ≥1000 words
 ```
 
 ### Gate 3 (Plan)
 ```
 ✅ implementation-plan-ENTRY_ID.md
-   Required content:
+   Required:
    - Problem Statement
    - Proposed Solution
    - Alternatives Considered
-   - Files to Change (explicit list)
-   - Approval: "Status: APPROVED — [Name] [Date]"
+   - Files to Change
+   - ## Design Reference (required if plan mentions any UI terms)  ← NEW v14.0
+   - ## Success Metric (always required)                           ← NEW v14.0
+   - ## Failure Signal (always required)                           ← NEW v14.0
+   - Status: APPROVED — [Name] [Date]
 ```
 
-### Gates 4-9 (Execution)
+### Gates 4–10 (Execution + Performance)
 ```
 ✅ git commits on branch with TASK_ID in message
 ✅ npm run build — PASSED
 ✅ npm run lint — PASSED
 ✅ npm run test — PASSED (coverage ≥80%)
-✅ Security scan — PASSED (no secrets, no critical CVEs)
+✅ Security scan — PASSED (no secrets, no critical CVEs, env parity)
+✅ Lighthouse ≥80
 ```
 
-### Gate 11 (Production)
+### Gate 13 (Browser Walkthrough — Preview)
+```
+✅ docs/reports/browser-test-ENTRY_ID.md
+   Required:
+   - Preview URL (Vercel/Netlify — NOT localhost, NOT production)
+   - Mobile screenshot (375px viewport)
+   - Desktop screenshot (1280px viewport)
+   - Console Errors: Count: 0
+   - User Flow Checklist (all [x])
+   - Matches design: YES/NO   ← required if G3 plan has ## Design Reference
+```
+
+### Gate 14 (PM Code Review)
+```
+✅ PR body contains "## Code Review Summary"
+   - Files changed + reason
+   - Files NOT changed + reason
+✅ PR has comment containing "APPROVED"
+   Usage: node scripts/gates/gate-14-pm-review.js ENTRY-XXX PR_NUMBER
+```
+
+### Gate 11 (Production Verification)
 ```
 ✅ docs/reports/production-verification-ENTRY_ID.md
-   Required content:
+   Required:
    - Deployment Timestamp
    - Deployment ID
    - Production URL (HTTP 200 verified)
-   - Screenshot path (file must exist)
+   - Mobile screenshot (375px)
+   - Desktop screenshot (1280px)
+   - Manual Verification Checklist (all [x])
    - Health Check Results
+✅ G3 plan has ## Success Metric + ## Failure Signal    ← verified by G11 script
 ```
 
 ### Gate 12 (Documentation)
@@ -279,7 +317,7 @@ The physical audit (G1) tells you WHAT to research.
 
 ## ENFORCEMENT MECHANISMS
 
-### Pre-dev Hook (v7.0 — checks G0 + G1 + G2)
+### Pre-dev Hook (checks G0 + G1 + G2)
 
 ```bash
 #!/bin/bash
@@ -306,55 +344,39 @@ if [ ! -f ".env-validated.log" ] && [ ! -f "bmn-site/.env-validated.log" ]; then
   exit 1
 fi
 
-# Extract TASK_ID from branch name
 TASK_ID=$(git branch --show-current | grep -oE 'ENTRY-[A-Za-z0-9._-]+' || echo "unknown")
 
-# Gate 1: Physical audit must exist BEFORE research
+# Gate 1: Physical audit must exist
 AUDIT_FOUND=false
-for path in \
-  "docs/reports/physical-audit-${TASK_ID}.md" \
-  "bmn-site/docs/reports/physical-audit-${TASK_ID}.md"; do
-  [ -f "$path" ] && AUDIT_FOUND=true && break
+for p in "docs/reports/physical-audit-${TASK_ID}.md" "bmn-site/docs/reports/physical-audit-${TASK_ID}.md"; do
+  [ -f "$p" ] && AUDIT_FOUND=true && break
 done
-
 if [ "$AUDIT_FOUND" = false ] && [ "$TASK_ID" != "unknown" ]; then
-  echo ""
   echo "❌ BLOCKED: Gate 1 (Physical Audit) not complete."
-  echo ""
-  echo "You must observe the current code and production state BEFORE"
-  echo "doing any research or writing any code."
-  echo ""
-  echo "Create: docs/reports/physical-audit-${TASK_ID}.md"
-  echo "Required sections: Current State, Git HEAD, Production State, Files"
-  echo "Minimum: 50 non-empty lines"
-  echo ""
+  echo "Create: docs/reports/physical-audit-${TASK_ID}.md (≥50 lines, anchored to git HEAD)"
   exit 1
 fi
 
-# Gate 2: Research audit must exist
+# Gate 2: Research must exist
 RESEARCH_FOUND=false
-for path in \
+for p in \
   "docs/research/${TASK_ID}-research.md" \
   "audit-gate-0-${TASK_ID}.log" \
   "bmn-site/docs/research/${TASK_ID}-research.md" \
   "bmn-site/audit-gate-0-${TASK_ID}.log"; do
-  [ -f "$path" ] && RESEARCH_FOUND=true && break
+  [ -f "$p" ] && RESEARCH_FOUND=true && break
 done
-
 if [ "$RESEARCH_FOUND" = false ] && [ "$TASK_ID" != "unknown" ]; then
-  echo ""
   echo "❌ BLOCKED: Gate 2 (Research) not complete."
-  echo ""
-  echo "Required: docs/research/${TASK_ID}-research.md"
-  echo "Must contain: 3+ web searches, 5+ sources, Alternatives Considered, 1000+ words"
-  echo ""
+  echo "Create: docs/research/${TASK_ID}-research.md"
+  echo "Must include: ## Codebase Search section (v14.0 requirement)"
   exit 1
 fi
 
-echo "✅ Pre-dev gates passed (G0 Node.js, G1 Physical Audit, G2 Research)"
+echo "✅ Pre-dev gates passed (G0, G1, G2)"
 ```
 
-### Pre-commit Hook (v7.0)
+### Pre-commit Hook (checks G0 + G1 + G2 + G3 + build)
 
 ```bash
 #!/bin/bash
@@ -362,13 +384,11 @@ echo "✅ Pre-dev gates passed (G0 Node.js, G1 Physical Audit, G2 Research)"
 
 set -e
 
-# Node.js check
 if ! command -v node &> /dev/null; then
   echo "❌ BLOCKED: Node.js not found. Install Node.js ≥18."
   exit 1
 fi
 
-# Env validation
 if [ ! -f ".env-validated.log" ] && [ ! -f "bmn-site/.env-validated.log" ]; then
   echo "❌ BLOCKED: Run 'npm run validate:env' first"
   exit 1
@@ -376,51 +396,38 @@ fi
 
 TASK_ID=$(git branch --show-current | grep -oE 'ENTRY-[A-Za-z0-9._-]+' || echo "unknown")
 
-# Gate 1: Physical audit
 if [ "$TASK_ID" != "unknown" ]; then
+  # Gate 1
   AUDIT_FOUND=false
-  for path in \
-    "docs/reports/physical-audit-${TASK_ID}.md" \
-    "bmn-site/docs/reports/physical-audit-${TASK_ID}.md"; do
-    [ -f "$path" ] && AUDIT_FOUND=true && break
+  for p in "docs/reports/physical-audit-${TASK_ID}.md" "bmn-site/docs/reports/physical-audit-${TASK_ID}.md"; do
+    [ -f "$p" ] && AUDIT_FOUND=true && break
   done
-  if [ "$AUDIT_FOUND" = false ]; then
-    echo "❌ BLOCKED: No physical audit found. Complete Gate 1 before committing."
-    exit 1
-  fi
-fi
+  [ "$AUDIT_FOUND" = false ] && echo "❌ BLOCKED: No physical audit found. Complete Gate 1." && exit 1
 
-# Gate 2: Research audit
-if [ "$TASK_ID" != "unknown" ]; then
+  # Gate 2
   RESEARCH_FOUND=false
-  for path in \
+  for p in \
     "docs/research/${TASK_ID}-research.md" \
     "audit-gate-0-${TASK_ID}.log" \
     "bmn-site/docs/research/${TASK_ID}-research.md" \
     "bmn-site/audit-gate-0-${TASK_ID}.log"; do
-    [ -f "$path" ] && RESEARCH_FOUND=true && break
+    [ -f "$p" ] && RESEARCH_FOUND=true && break
   done
-  if [ "$RESEARCH_FOUND" = false ]; then
-    echo "❌ BLOCKED: No research audit found. Complete Gate 2 before committing."
-    exit 1
-  fi
-fi
+  [ "$RESEARCH_FOUND" = false ] && echo "❌ BLOCKED: No research artifact found. Complete Gate 2 with ## Codebase Search." && exit 1
 
-# Gate 3: Approved plan
-if [ "$TASK_ID" != "unknown" ]; then
+  # Gate 3
   PLAN_PATH="implementation-plan-${TASK_ID}.md"
   [ ! -f "$PLAN_PATH" ] && PLAN_PATH="bmn-site/implementation-plan-${TASK_ID}.md"
   if [ ! -f "$PLAN_PATH" ]; then
-    echo "❌ BLOCKED: No implementation plan found. Complete Gate 3 before committing."
+    echo "❌ BLOCKED: No implementation plan found. Complete Gate 3."
     exit 1
   fi
   if ! grep -q "APPROVED" "$PLAN_PATH"; then
-    echo "❌ BLOCKED: Plan not approved by PM/CEO. Get sign-off before committing."
+    echo "❌ BLOCKED: Plan not approved by PM/CEO."
     exit 1
   fi
 fi
 
-# Build gates
 cd bmn-site 2>/dev/null || true
 npm run build || { echo "❌ BLOCKED: Build failed"; exit 1; }
 npm run lint  || { echo "❌ BLOCKED: Lint failed"; exit 1; }
@@ -428,12 +435,6 @@ npm run test  || { echo "❌ BLOCKED: Tests failed"; exit 1; }
 
 echo "✅ All Ralph gates passed — commit allowed"
 ```
-
-### CI/CD Pipeline
-- All 12 gates checked on every PR to main
-- Security scan runs automatically
-- Merge blocked if any gate fails
-- HMAC proofs verified by CI runner (cannot be forged locally)
 
 ---
 
@@ -444,17 +445,23 @@ echo "✅ All Ralph gates passed — commit allowed"
 | Node.js runtime check in G0 | Agents without Node.js producing fake static analysis |
 | Pre-dev hook checks G1 + G2 | Starting work without physical audit or research |
 | Pre-commit hook checks G1 + G2 + G3 | Committing without audit, research, or approved plan |
-| Artifact existence + content check | Empty or template files claiming gate complete |
-| 50-line minimum on G1 audit | "Done" in 3 lines to satisfy the check |
-| Security scanner | Shipping P0 vulnerabilities or secrets |
-| CI/CD required status checks | Merging PRs without all gates |
+| G2 requires `## Codebase Search` | Building features that already exist (INCIDENT-002) |
+| G3 requires `## Design Reference` (UI) | Antigravity guessing layouts instead of following design |
+| G3 requires `## Success Metric` | Shipping with no definition of "working" |
+| G3 requires `## Failure Signal` | Shipping with no way to detect breakage |
+| G13 requires preview URL (not localhost) | Missing env vars going undetected before merge (INCIDENT-001) |
+| G13 requires design compliance confirmation | UI deviating from approved design without PM notice |
+| G14 requires PM APPROVED comment on PR | Antigravity self-certifying its own work |
+| G14 requires Code Review Summary | PM reviewing blindly without knowing what changed |
+| G11 verifies G3 Success Metric + Failure Signal | Signing off on production with no observability |
+| G11 requires mobile + desktop screenshots | Blank pages returning HTTP 200 passing as "working" |
+| G11 requires human sign-off checklist | PM approving without opening the live URL (INCIDENT-001) |
 | HMAC cryptographic proofs | Forged local proof files |
-| Production URL HTTP ping | Fake production verification claims |
-| Screenshot file existence check | Claiming screenshots without taking them |
+| CI/CD required status checks | Merging PRs without all gates |
 
 ---
 
 **Created:** 2026-02-09
-**v7.0:** 2026-02-21
+**v14.0:** 2026-02-21
 **Status:** ACTIVE & ENFORCED
 **Escalation:** Any bypass attempt = P0 incident report
