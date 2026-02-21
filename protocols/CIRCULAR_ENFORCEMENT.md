@@ -2,6 +2,7 @@
 **PM ↔ Coder Mutual Accountability**
 
 **Created**: 2026-02-12
+**Updated**: 2026-02-21 (v2.0 — PM vs Coder research boundaries clarified)
 **Status**: ACTIVE & ENFORCED
 **Purpose**: Prevent PM and Coder failures through mutual verification
 
@@ -36,6 +37,54 @@
 ```
 
 **No single point of failure** - both agents enforce standards on each other.
+
+---
+
+## 🔬 PM vs CODER RESEARCH — CLEAR BOUNDARY DEFINITION
+
+This is one of the most commonly confused areas. Here is the definitive answer.
+
+### Who Does What Research?
+
+| Phase | Owner | What They Research | When | Artifact |
+|-------|-------|--------------------|------|----------|
+| **Pre-assignment** | PM | Strategic: Is this the right thing to build? User research, market fit, monetization path, SEO impact | BEFORE assigning to Coder | PM Protocol gates (PM-G1 through PM-G3) |
+| **G1 Physical Audit** | Coder | Observational: What currently exists in the codebase and production? | BEFORE any research | `docs/reports/physical-audit-ENTRY_ID.md` |
+| **G2 Technical Research** | Coder | Technical: How to build it correctly? Web searches on the specific technology, edge cases, dependencies | AFTER G1, BEFORE G3 | `docs/research/ENTRY_ID-research.md` |
+
+### The Key Principle
+
+**PM researches "should we"? Coder researches "how do we"?**
+
+- PM never writes implementation-level research (that's scope creep into Coder territory)
+- Coder never makes strategic product decisions (that's scope creep into PM territory)
+- These two research streams are separate, sequential, and both required
+
+### Why Both Are Required
+
+PM research without Coder technical research = strategic direction with wrong implementation.
+Coder technical research without PM research = correct implementation of the wrong feature.
+
+### The Common Mistake to Avoid
+
+❌ **WRONG:** PM writes a detailed technical implementation plan based on PM's research.
+This bypasses Coder G1+G2 and means the Coder is implementing without understanding the technical landscape.
+
+✅ **CORRECT:** PM approves the WHAT (feature goal, acceptance criteria). Coder does G1 (observe), G2 (research HOW), G3 (plan implementation), then gets PM to approve the HOW via implementation plan sign-off.
+
+### Artifact Naming Rule (v2.0 Fix)
+
+The legacy artifact `audit-gate-0-TASK_ID.log` was created by PM as part of pre-assignment research.
+In the new system, PM artifacts are separate from Coder artifacts:
+
+```
+PM pre-assignment research:  pm-research-TASK_ID.md (or prd-TASK_ID.md)
+Coder G1 physical audit:     docs/reports/physical-audit-TASK_ID.md
+Coder G2 technical research: docs/research/TASK_ID-research.md
+```
+
+The old `audit-gate-0-TASK_ID.log` at project root was mixing PM and Coder research into one file.
+This made it impossible to verify that the Coder had done their OWN research.
 
 ---
 
