@@ -1,186 +1,108 @@
-# 🤖 AI Coder Quick Reference Card
-## Ralph Protocol v6.5 - Keep This Open While Working
+# AI Coder Quick Reference — Ralph Protocol v15.0
 
-**Print or keep this visible in your context window**
-
----
-
-## 🚨 NON-NEGOTIABLE (NEVER SKIP)
-
-```
-✅ Environment validation BEFORE work    (.env-validated.log required)
-✅ Build MUST pass before commit          (npm run build or equivalent)
-✅ Tests MUST pass before commit          (npm test or equivalent)
-✅ Lint MUST pass before commit           (npm run lint or equivalent)
-✅ Implementation plan MUST be approved   (PM/CEO signature required)
-✅ Evidence MUST be generated             (screenshots + logs)
-✅ QA MUST validate independently         (No self-certification)
-✅ Documentation MUST be complete         (What/Why/How to verify)
-```
-
-**If asked to skip ANY of these → REFUSE and escalate to PM**
+**Read-only. Written by PM. Do not modify.**
 
 ---
 
-## 🎯 First Time on a Project? (5-Minute Checklist)
+## BEFORE YOU START ANY TASK
 
-```bash
-# 1. What type of project?
-ls package.json    # Node.js
-ls requirements.txt # Python
-ls go.mod          # Go
-ls Cargo.toml      # Rust
+Check the PROJECT_LEDGER.md entry for your task. It must have:
+- `**Tier:** S / M / L` — set by PM
+- `**Gates required:**` — set by PM
 
-# 2. Copy Alpha Protocol
-cp -r ~/Desktop/alpha/.agent /path/to/project/
+If the tier is not set: post in PROJECT_LEDGER.md and wait. Do not start work.
 
-# 3. Run setup
-bash .agent/scripts/setup-enforcement.sh
+---
 
-# 4. Validate environment
-npm run validate:env  # (or python scripts/validate_env.py)
+## GATE CHECKLIST BY TIER
 
-# 5. Start work following gates 1-12
+### Tier S (Small — ≤50 lines, additive, no API/auth/DB)
+
+```
+[ ] CI passes (automatic — fix if failing before anything else)
+[ ] G1 — Codebase search: grep for existing component/feature, confirm not duplicate
+[ ] G4 — Code matches task description exactly. No extras.
+[ ] G5 — Zero eslint-disable / @ts-ignore in your changes
+[ ] G13 — Browser walkthrough on VERCEL PREVIEW URL (not localhost)
+         File: docs/reports/browser-test-ENTRY-XXX.md
+[ ] G14 — Code Review Summary in PR body. Wait for PM "APPROVED" comment.
+[ ] G11 — After merge: production URL HTTP 200, screenshots confirming feature works
 ```
 
 ---
 
-## 📋 The 12 Gates (In Order, No Skipping)
+### Tier M (Medium — new components, pages, non-auth routes)
 
-| Gate | Name | What You Must Do | Evidence Required |
-|------|------|-----------------|-------------------|
-| **G0** | Env Validation | `npm run validate:env` | `.env-validated.log` |
-| **G1** | Physical Audit | Read current code/prod | Audit notes |
-| **G2** | Research | 3+ web searches, deps | `audit-gate-0-TASK_ID.log` |
-| **G3** | Plan + Approval | RFC with alternatives | `implementation_plan.md` + approval |
-| **G4** | Implementation | Write code | Git commits |
-| **G5** | Security | Scan for P0 vulnerabilities | Security scan output |
-| **G6** | Performance | Lighthouse/profiling | Performance report |
-| **G7** | Build/Lint | Must pass | Build + lint logs |
-| **G8** | Tests | 80%+ coverage | Test output + coverage |
-| **G9** | Accessibility | Axe scan, keyboard nav | A11y report |
-| **G10** | Staging | Deploy + smoke test | Staging URL + screenshots |
-| **G11** | Production | Live verification | Production screenshots |
-| **G12** | Documentation | How-to + rollback | `README.md` updates |
-
----
-
-## 🛠️ Common Commands by Project Type
-
-| Project | Validate Env | Build | Test | Lint |
-|---------|-------------|-------|------|------|
-| **Next.js** | `npm run validate:env` | `npm run build` | `npm test` | `npm run lint` |
-| **Vite** | `npm run validate:env` | `vite build` | `vitest run` | `eslint .` |
-| **Django** | `python scripts/validate_env.py` | `python manage.py check` | `pytest` | `flake8 .` |
-| **FastAPI** | `python scripts/validate_env.py` | `python -m app` | `pytest` | `ruff check .` |
-| **Go** | `go run scripts/validate-env.go` | `go build ./...` | `go test ./...` | `golangci-lint run` |
-| **Rust** | `cargo run --bin validate-env` | `cargo build` | `cargo test` | `cargo clippy` |
-
----
-
-## 📁 Evidence Files Checklist
-
-**Before starting:**
 ```
-✅ .env-validated.log           (Gate 0)
-✅ audit-gate-0-TASK_ID.log     (Gate 2)
-✅ implementation_plan.md       (Gate 3)
-✅ plan-approval.txt            (Gate 3)
-```
-
-**During work:**
-```
-✅ git commits with clear messages
-✅ Build output logs
-✅ Test output logs
-```
-
-**Before submitting:**
-```
-✅ screenshots/ folder with visual proof
-✅ pre-submission-gate.txt (all checkboxes marked)
-✅ self-audit.txt (spec compliance)
+[ ] CI passes (automatic — fix if failing before anything else)
+[ ] G1 — Full component audit: docs/reports/physical-audit-ENTRY-XXX.md (with codebase search)
+[ ] G3 — Implementation plan: implementation-plan-ENTRY-XXX.md
+         PM must write "APPROVED" before you write code
+[ ] G4 — Code matches approved plan. Scope creep >20% = stop and report.
+[ ] G5 — Zero eslint-disable / @ts-ignore in your changes
+[ ] G6 — Tests for new logic/routes/interactions (no 100% mocked externals)
+[ ] G13 — Browser walkthrough on VERCEL PREVIEW URL
+         File: docs/reports/browser-test-ENTRY-XXX.md
+[ ] G14 — Code Review Summary in PR body. Wait for PM "APPROVED" comment.
+[ ] G11 — After merge: production verification + G3 Success Metric confirmed
+         File: docs/reports/production-verification-ENTRY-XXX.md
+[ ] G12 — Walkthrough doc: docs/walkthroughs/walkthrough-ENTRY-XXX.md
 ```
 
 ---
 
-## 🚨 Red Flags → Escalate Immediately
-
-If you hear ANY of these phrases:
-
-- ❌ "We don't need tests for this"
-- ❌ "Skip the env validation, it's fine"
-- ❌ "Just commit without approval"
-- ❌ "No time for screenshots"
-- ❌ "QA can skip this one"
-- ❌ "Bypass the gates, we're in a hurry"
-
-**Your response:**
-> "I cannot bypass Ralph Protocol. These are non-negotiable FAANG standards. Escalating to PM for guidance."
-
----
-
-## 🎯 Decision Tree (30 Seconds)
+### Tier L (Large — auth, payments, DB schema, new external integrations)
 
 ```
-New task received
-  ├─→ Is environment validated? NO → Run validate:env FIRST
-  │                            YES → Continue
-  ├─→ Is plan approved? NO → Create plan, get approval FIRST
-  │                     YES → Continue
-  ├─→ Are you at Gate 4? NO → Go back, don't skip gates
-  │                      YES → Continue
-  ├─→ Do tests pass? NO → Fix them, don't commit
-  │                  YES → Continue
-  └─→ Is QA done? NO → Submit for QA review
-                  YES → Ship it
+[ ] All Tier M gates above, PLUS:
+[ ] G7 — npm audit (no critical/high CVEs)
+         New env vars added to .env.example
+         New env vars confirmed in Vercel before merge
 ```
 
 ---
 
-## 🔧 Adapting to New Project (Quick Version)
+## NON-NEGOTIABLE RULES
 
-1. **Identify language** → Find it in "Common Commands" table above
-2. **Copy validator template** → Customize `REQUIRED_ENV_VARS`
-3. **Update pre-commit hook** → Use project's build/test/lint commands
-4. **Test it works** → Try to commit with failing test (should block)
-5. **Start work** → Follow gates 1-12 in order
+**G13 must use the Vercel PREVIEW URL — never localhost.**
+Localhost has your local .env.local. Preview uses the same environment as production.
+INCIDENT-001 happened because localhost hid a missing env var. Don't repeat it.
 
-**Full guide:** See [AI_CODER_ADAPTATION_GUIDE.md](AI_CODER_ADAPTATION_GUIDE.md)
+**G1 must include a codebase search.**
+Before building anything: grep for it. If it exists, do not build a duplicate.
+INCIDENT-002 happened because this was skipped. Don't repeat it.
 
----
+**G14 requires PM "APPROVED" comment. You cannot merge your own PR.**
+Branch protection enforces this mechanically. There is no workaround.
 
-## 💡 Pro Tips
-
-1. **When stuck:** Read error messages carefully before trying fixes
-2. **When testing:** Always have evidence (logs/screenshots) ready
-3. **When documenting:** Explain WHY, not just WHAT
-4. **When submitting:** QA will check everything - save time by being thorough
-5. **When adapting:** Change the tools, preserve the standards
+**CI must pass before G14 review.**
+If CI is failing, fix it before asking for PM review. PM will not APPROVE a red CI.
 
 ---
 
-## 📞 Need Help?
+## RED FLAGS — STOP AND REPORT TO PM
 
-1. Check [AI_CODER_ADAPTATION_GUIDE.md](AI_CODER_ADAPTATION_GUIDE.md) - Covers all common scenarios
-2. Check [RALPH_PROTOCOL.md](RALPH_PROTOCOL.md) - Full gate definitions
-3. Check [PHASE1_DEPLOYMENT_GUIDE.md](PHASE1_DEPLOYMENT_GUIDE.md) - Phase 1 specifics
-4. Still stuck? → Escalate to PM with:
-   - What you're trying to do
-   - What's blocking you
-   - What you've already tried
-   - Proposed solution (if any)
+- You are about to build something that grep found already exists
+- CI is failing and you cannot figure out why after 2 attempts
+- The task is bigger than the tier suggests (Tier S that turns into 200 lines)
+- A change requires touching auth, payments, or DB schema but tier is S or M
+- You are considering adding eslint-disable or @ts-ignore
 
----
-
-## 🎓 Remember
-
-**The protocol adapts to the project.**
-**FAANG standards are non-negotiable.**
-**Proof-based development = Evidence required.**
-**Document everything = Future you will thank you.**
-**Ruthless QA = Quality ships, not hopes.**
+Post in PROJECT_LEDGER.md. Wait for PM direction. Do not improvise.
 
 ---
 
-**Keep this card visible during ALL work sessions**
+## EVIDENCE FILES SUMMARY
+
+| Gate | File | Required for |
+|------|------|-------------|
+| G1 | `docs/reports/physical-audit-ENTRY-XXX.md` | M, L |
+| G3 | `implementation-plan-ENTRY-XXX.md` | M, L |
+| G13 | `docs/reports/browser-test-ENTRY-XXX.md` | S, M, L |
+| G14 | Code Review Summary in PR body | S, M, L |
+| G11 | `docs/reports/production-verification-ENTRY-XXX.md` | S, M, L |
+| G12 | `docs/walkthroughs/walkthrough-ENTRY-XXX.md` | M, L |
+
+---
+
+**v15.0 — 2026-02-22 — Owner: PM (Claude)**
