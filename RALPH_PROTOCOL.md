@@ -1,369 +1,135 @@
-# 🦅 RALPH PROTOCOL v6.5 (PHASE 1 ENHANCED)
+# 🦅 RALPH PROTOCOL v14.0
 ## FAANG-Standard Technical Quality Gates
 
-**Version:** 6.5 (Phase 1: Environment Validation)
-**Effective Date:** 2026-02-11
+**Version:** 14.0 — See full reference: `protocols/RALPH_PROTOCOL.md`
+**Effective Date:** 2026-02-21
 **Status:** ACTIVE & MECHANICALLY ENFORCED
-**Owner:** AI Coder
-**Latest Enhancement:** Environment pre-flight validation with active connectivity testing
 
 ---
 
-## EXECUTIVE SUMMARY
+## Gate Sequence (non-negotiable)
 
-Ralph Protocol ensures **FAANG-level code quality** through 12 sequential gates and 11 non-negotiable commandments. After Incident #001 (Gate 2 bypass), the protocol was hardened from "honor system" to "mechanical enforcement."
+```
+G0 → G1 → G2 → G3 → G4 → G5 → G6 → G7 → G8 → G9 → G10 → G13 → G14 → G11 → G12
+```
 
-**Phase 1 Enhancement (v6.5 - 2026-02-11):**
-Added **pre-flight environment validation** with active connectivity testing to prevent RALPH-003 class failures (wrong environment configuration causing wasted debugging cycles). New **Gate 0** now validates environment integrity BEFORE development starts and is required by pre-commit hooks.
+**14 gates total. All mandatory. No skipping.**
 
 ---
 
-## 🆕 PHASE 1 ENHANCEMENTS (v6.5)
+## The 14 Gates at a Glance
 
-### Problem Identified
-The gap analysis revealed that while v6.0 claimed "mechanical enforcement," agents could still:
-- Start work with misconfigured environments (wrong ports, dead URLs)
-- Waste hours debugging environment issues instead of catching them upfront
-- Bypass research gates during development (only blocked at commit time)
-
-### Solution: Gate 0 - Environment Pre-Flight Validation
-
-**New Mandatory Step** before ANY development work:
-
-```bash
-npm run validate:env
-```
-
-**What it validates:**
-1. ✅ All required environment variables present and correctly formatted
-2. ✅ Supabase URL is accessible (active HTTP ping)
-3. ✅ Supabase Auth service responds to health checks
-4. ✅ Local ports match configuration (prevents 54321 vs 55321 mismatches)
-5. ✅ Generates `.env-validated.log` as proof of validation
-
-**Enforcement:**
-- `predev` hook: Blocks `npm run dev` until validation passes
-- Pre-commit hook: Rejects commits without `.env-validated.log`
-- Validation expires after 24 hours (warning shown)
-
-**Impact:**
-- Prevents entire class of environment-related debugging loops
-- Catches configuration errors in <5 seconds instead of after hours of work
-- Enables confident development knowing infrastructure is ready
+| Gate | Phase | Name | Key Requirement |
+|------|-------|------|----------------|
+| **G0** | Pre-flight | Environment Validation | Node.js ≥18, env vars, `.env-validated.log` |
+| **G1** | Assessment | Physical Audit | Observe current code + production. ≥50 lines. List existing components (UI tasks). |
+| **G2** | Assessment | External Research | 3+ web searches. **`## Codebase Search` required** — prove feature doesn't exist. 1000+ words. |
+| **G3** | Planning | Blueprint & RFC | Approved plan. **`## Design Reference`** (UI). **`## Success Metric`**. **`## Failure Signal`**. |
+| **G4** | Execution | Implementation Integrity | Code per approved plan. Scope creep >30% = blocked. |
+| **G5** | Execution | Strict Lint Suppression | Zero unexplained eslint-disable / @ts-ignore. |
+| **G6** | Execution | Test Quality | ≥3 assertions/test. Real integration tests. No 100% mocked externals. |
+| **G7** | Execution | Security Suite | No secrets. No critical CVEs. Env parity check. |
+| **G8** | Execution | TDD Proof | Tests pass. Coverage ≥80%. |
+| **G9** | Execution | Accessibility | Axe scan. WCAG 2.1 AA. Skip if no UI. |
+| **G10** | Verification | Performance | Lighthouse ≥80. Bundle no regression >10%. |
+| **G13** | Verification | Browser Walkthrough (Preview) | Test PREVIEW URL. Screenshots (375px + 1280px). Console errors = 0. **`Matches design: YES/NO`** if G3 has Design Reference. |
+| **G14** | Verification | PM Code Review | Antigravity posts Code Review Summary to PR. PM comments **"APPROVED"**. |
+| **G11** | Verification | Production Verification | HTTP 200. Mobile + desktop screenshots. Human checklist. **G3 must have Success Metric + Failure Signal.** |
+| **G12** | Documentation | Documentation | What changed, why, how to use, rollback. |
 
 ---
 
-## CORE PRINCIPLES
+## New in v14.0 — What Antigravity Must Do Differently
 
-```yaml
-fail_safe_by_default: true      # Missing validation = blocked
-single_source_of_truth: true    # This file is the authority
-architectural_enforcement: true  # Make violations impossible
-evidence_based: true            # Every gate requires proof
-```
-
----
-
-## 4-LAYER ENFORCEMENT ARCHITECTURE (v6.5)
-
-```
-┌─────────────────────────────────────────────────────┐
-│ LAYER 0: ENVIRONMENT PRE-FLIGHT (NEW v6.5) 🆕       │
-│ • npm run validate:env REQUIRED                     │
-│ • Active connectivity tests (Supabase, Auth, DB)    │
-│ • Port availability checks (prevents mismatches)    │
-│ • Generates .env-validated.log (expires 24h)        │
-│ ❌ BLOCKS npm run dev if environment invalid        │
-└────────────────────┬────────────────────────────────┘
-                     ▼
-┌─────────────────────────────────────────────────────┐
-│ LAYER 1: MANDATORY GATE 0 VALIDATION                │
-│ • Audit log required BEFORE any work                │
-│ • Research audit (3+ web searches)                  │
-│ • Dependency analysis mandatory                     │
-└────────────────────┬────────────────────────────────┘
-                     ▼
-┌─────────────────────────────────────────────────────┐
-│ LAYER 2: PLAN APPROVAL CHECKPOINT                   │
-│ • "Alternatives Considered" section required        │
-│ • CEO/PM approval signature                         │
-│ • Plan link in commit message                       │
-│ ❌ NO CODE BEFORE APPROVAL                          │
-└────────────────────┬────────────────────────────────┘
-                     ▼
-┌─────────────────────────────────────────────────────┐
-│ LAYER 3: BUILD STATUS GATE                          │
-│ ✅ npm run build (must pass)                        │
-│ ✅ npm run test (80%+ coverage)                     │
-│ ✅ npm run lint (must pass)                         │
-│ ✅ Security scan (12/12 checks)                     │
-│ ✅ Environment validation log present               │
-└─────────────────────────────────────────────────────┘
-```
-
----
-
-## THE 11 COMMANDMENTS
-
-| # | Law | Rule | Severity | Enforcement |
-|---|-----|------|----------|-------------|
-| 1 | **Limit Law** | All SELECT queries must include LIMIT | P0 | Scanner blocks |
-| 2 | **Security Law** | Never use dangerouslySetInnerHTML without DOMPurify | P0 | Build fails |
-| 3 | **JSON-LD Law** | Always use safeJsonLd() utility | P0 | Scanner blocks |
-| 4 | **Revenue Law** | Payment code uses database, not in-memory | P0 | Deploy blocked |
-| 5 | **Sequential Law** | All 12 gates in strict order | P0 | Audit log required |
-| 6 | **Proof Law** | Evidence = Logs + Screenshots + Git Hash | P0 | Logs required |
-| 7 | **Air-Gap Law** | DB writes via server-side only | P0 | Build fails |
-| 8 | **Context Law** | Reports anchor to Git HEAD | P1 | Hash verified |
-| 9 | **Semantic Law** | Commits reference TASK_ID | P1 | Hook rejects |
-| 10 | **Integrity Law** | Reports pass validation | P1 | Exit code blocks |
-| 11 | **RFC Law** | Plan has "Alternatives" + approval | P0 | Hook rejects |
-
----
-
-## THE 12 QUALITY GATES
-
-### PHASE 1: ASSESSMENT (SEQUENTIAL - MUST COMPLETE BEFORE CODING)
-
-| Gate | Name | Time | Requirements | Enforcement |
-|------|------|------|--------------|-------------|
-| **G1** | Physical Audit & State | 1-2h | Verify current code/production via direct observation | Pre-dev hook blocks without audit |
-| **G2** | Logic Mapping & Research | 2-3h | **3+ web searches MANDATORY**, dependency analysis, edge cases | Pre-commit hook blocks without `audit-gate-0-*.log` |
-
-**🚨 CRITICAL CHANGE (2026-02-12):**
-- G1 and G2 are **BLOCKING gates** - cannot proceed to G3/G4 without completion
-- `npm run dev` BLOCKED until `audit-gate-0-TASK_ID.log` exists
-- Pre-commit hook REJECTS commits without audit log
-- **NO CODE BEFORE RESEARCH** - This is mechanically enforced, not optional
-
-### PHASE 2: PLANNING (MUST COMPLETE BEFORE CODING)
-
-| Gate | Name | Time | Requirements | Enforcement |
-|------|------|------|--------------|-------------|
-| **G3** | Blueprint & RFC | 1-2h | Implementation plan with "Alternatives Considered", CEO/PM approval | Pre-commit hook checks for approval signature |
-
-**🚨 CRITICAL CHANGE (2026-02-12):**
-- G3 is a **BLOCKING gate** - cannot proceed to G4 without PM/CEO approval
-- Plan must be approved in PROJECT_LEDGER.md before any implementation
-- Pre-commit hook checks for approval signature in plan file
-- **NO CODE BEFORE PLAN APPROVAL** - This is mechanically enforced
-
-### PHASE 3: EXECUTION (ONLY AFTER G1, G2, G3 COMPLETE)
-
-| Gate | Name | Time | Requirements | When to Run |
-|------|------|------|--------------|-------------|
-| **G4** | Implementation | Varies | Execute approved plan, no scope creep | AFTER G1+G2+G3 complete |
-| **G5** | Security Audit | 30m | FAANG P0 scanner (12 checks) | DURING implementation |
-| **G6** | Performance Audit | 30m | Lighthouse 90+, bundle size check | DURING implementation |
-| **G7** | Code Quality & Build | 10m | lint, typecheck, build pass | BEFORE commit |
-| **G8** | TDD Proof | 2-4h | Unit + E2E tests, 80%+ coverage | WITH implementation |
-| **G9** | Accessibility Audit | 1h | Axe scan, keyboard nav, ARIA labels | DURING implementation |
-
-**🚨 CRITICAL CHANGE (2026-02-12):**
-- G4-G9 can ONLY run AFTER G1, G2, G3 are complete
-- Attempting to code before research = pre-dev hook blocks `npm run dev`
-- Attempting to commit before plan approval = pre-commit hook rejects
-
-### PHASE 4: VERIFICATION
-
-| Gate | Name | Time | Requirements |
-|------|------|------|--------------|
-| **G10** | Staging Deployment | 30m | Deploy to staging, smoke tests |
-| **G11** | Production Verification | 1h + 24h | Live verification, screenshots, monitoring |
-
-### PHASE 5: DOCUMENTATION
-
-| Gate | Name | Time | Requirements |
-|------|------|------|--------------|
-| **G12** | Documentation & Walkthrough | 30m | What changed, how to use, rollback procedure |
-
----
-
-## SECURITY CHECKS (12 Total)
-
-### Code Checks (4)
-- SEC-001: Payment replay attack (no in-memory Set/Map)
-- SEC-002: Mock data fallbacks in production
-- SEC-003: XSS via dangerouslySetInnerHTML
-- SEC-004: SQL injection patterns
-
-### Dependency Checks (2)
-- DEP-001: Required packages installed
-- DEP-002: Lock file sync (pnpm-lock.yaml)
-
-### Build Checks (3)
-- BLD-001: TypeScript compilation
-- BLD-002: Next.js build succeeds
-- BLD-003: ESLint passes
-
-### Deployment Checks (3)
-- DPL-001: Environment variables documented
-- DPL-002: Git state clean
-- DPL-003: No hardcoded secrets
-
----
-
-## EVIDENCE REQUIREMENTS
-
-### Before Starting Work (NEW v6.5)
-```
-✅ .env-validated.log           (Environment pre-flight validation)
-                                 - Generated by: npm run validate:env
-                                 - Contains: connectivity test results
-                                 - Expires: 24 hours
-```
-
-### Before Implementation
-```
-✅ audit-gate-0-TASK_ID.log    (Research + dependency audit)
-✅ implementation_plan.md       (Plan with Alternatives)
-✅ plan-approval.txt            (CEO/PM signature)
-```
-
-### During Implementation
-```
-✅ git log with Plan reference
-✅ npm run ralph output         (Security scan)
-✅ npm run build output         (Build success)
-```
-
-### After Completion
-```
-✅ gates.txt                    (All gates passed)
-✅ pre-submission-gate.txt      (Checklist complete)
-✅ self-audit.txt               (Spec alignment)
-✅ screenshots/                 (Visual proof)
-```
-
----
-
-## PRE-SUBMISSION CHECKLIST
+### G2 Research Document: Add `## Codebase Search`
 
 ```markdown
-# Pre-Submission Gate — [TASK_ID]
+## Codebase Search
 
-## Quality Gates
-- [ ] npm run build — PASSED
-- [ ] npm run lint — PASSED
-- [ ] npm run test — PASSED (coverage ≥80%)
-- [ ] Security scan — PASSED (12/12)
+Searched repo for existing implementations of [feature]:
 
-## Spec Compliance
-- [ ] Read full task spec
-- [ ] Every deliverable implemented
-- [ ] All UI sections rendered
-- [ ] All API routes correct status codes
+$ grep -r "featureName" src/
+(no results — safe to build)
+```
 
-## Code Quality
-- [ ] No `any` types
-- [ ] No unused imports
-- [ ] No placeholder comments
-- [ ] Auth checks on protected routes
+**Why:** Prevents building duplicate components (INCIDENT-002 root cause).
 
-## Evidence
-- [ ] gates.txt saved
-- [ ] screenshots captured
-- [ ] self-audit.txt complete
+---
+
+### G3 Implementation Plan: Add 3 New Sections
+
+```markdown
+## Design Reference
+[UI features only — Figma link, screenshot path, or written layout description]
+Example: "Header at top, card grid below (3 columns on desktop, 1 on mobile)"
+
+## Success Metric
+[Single number/signal proving the feature works]
+Example: "Dashboard loads with real user data for 100% of authenticated requests"
+
+## Failure Signal
+[Log line/error that indicates the feature is broken]
+Example: "TypeError: Cannot read properties of undefined (reading 'user')" in console
+```
+
+**Why:** No feature should ship without knowing what "working" and "broken" look like.
+
+---
+
+### G13 Browser Test Report: Add Design Compliance
+
+If the G3 plan has a `## Design Reference`, add this line to the browser test report:
+
+```
+Matches design: YES
+```
+or:
+```
+Matches design: NO (reason: sidebar is vertical but design shows horizontal)
 ```
 
 ---
 
-## ENFORCEMENT MECHANISMS
+### G14: New Gate — PM Code Review
 
-### Pre-dev Hook (NEW 2026-02-12)
-```bash
-# .git/hooks/pre-dev (runs before npm run dev)
-#!/bin/bash
+After G13 passes, Antigravity adds a `## Code Review Summary` to the PR body:
 
-echo "🔍 Ralph Protocol: Checking research gates..."
+```markdown
+## Code Review Summary
 
-# Extract task ID from branch or environment
-TASK_ID=$(git branch --show-current | grep -oE 'ENTRY-[0-9]+' || echo "unknown")
+### Files Changed
+- `src/components/X.tsx` — [reason]
 
-# Check Gate 2: Research audit required
-if ! ls audit-gate-0-${TASK_ID}.log 1> /dev/null 2>&1; then
-  echo ""
-  echo "❌ BLOCKED: Cannot start development without research"
-  echo ""
-  echo "Required: Complete Gate 2 (Logic Mapping & Research)"
-  echo "  - Create: audit-gate-0-${TASK_ID}.log"
-  echo "  - Must contain: 3+ web search results"
-  echo "  - Must contain: Dependency analysis"
-  echo "  - Must contain: Edge cases identified"
-  echo ""
-  echo "Fix: Complete research BEFORE coding"
-  exit 1
-fi
-
-echo "✅ Research gate passed"
+### Files NOT Changed
+- `src/components/Y.tsx` — [reason it was intentionally left unchanged]
 ```
 
-### Pre-commit Hook (v6.6 Enhanced - 2026-02-12)
-```bash
-# .git/hooks/pre-commit
-#!/bin/bash
+Then: PM reviews the PR and comments **"APPROVED"**.
 
-# Extract task ID
-TASK_ID=$(git branch --show-current | grep -oE 'ENTRY-[0-9]+' || echo "unknown")
-
-# Check environment validation
-if ! test -f ".env-validated.log"; then
-  echo "❌ BLOCKED: Environment not validated"
-  echo "Fix: Run 'npm run validate:env' first"
-  exit 1
-fi
-
-# Check Gate 2: Research audit exists (CRITICAL)
-if ! ls audit-gate-0-${TASK_ID}.log 1> /dev/null 2>&1; then
-  echo "❌ BLOCKED: No research audit log found"
-  echo "Required: audit-gate-0-${TASK_ID}.log"
-  echo "Fix: You MUST complete Gate 2 research BEFORE coding"
-  exit 1
-fi
-
-# Check Gate 3: Plan approval exists (CRITICAL)
-if ! ls implementation-plan-${TASK_ID}.md 1> /dev/null 2>&1; then
-  echo "❌ BLOCKED: No implementation plan found"
-  echo "Required: implementation-plan-${TASK_ID}.md"
-  echo "Fix: You MUST get plan approved BEFORE coding"
-  exit 1
-fi
-
-# Verify plan has approval signature
-if ! grep -q "APPROVED" implementation-plan-${TASK_ID}.md; then
-  echo "❌ BLOCKED: Plan not approved by PM/CEO"
-  echo "Fix: Get approval signature in plan file"
-  exit 1
-fi
-
-# Check build gates
-npm run build || exit 1
-npm run lint || exit 1
-npm run test || exit 1
-
-echo "✅ All Ralph gates passed - commit allowed"
-```
-
-### CI/CD Pipeline
-- All 12 gates checked on PR
-- Security scan runs automatically
-- Merge blocked if any gate fails
+Then: Run `node scripts/gates/gate-14-pm-review.js ENTRY-XXX PR_NUMBER` to verify.
 
 ---
 
-## BYPASS PREVENTION
+## Evidence Checklist
 
-| Mechanism | Prevents |
-|-----------|----------|
-| Pre-commit hook with fail-safe | Committing without validation |
-| Artifact existence check | Claiming gate complete without files |
-| Security scanner | Shipping P0 vulnerabilities |
-| CI/CD required checks | Merging PRs without all gates |
-| File content hashing | Empty artifact files |
-| Git commit verification | Fake production deploy claims |
+```
+G0:  .env-validated.log
+G1:  docs/reports/physical-audit-ENTRY_ID.md          (≥50 lines, anchored to git HEAD)
+G2:  docs/research/ENTRY_ID-research.md                (## Codebase Search required)
+G3:  implementation-plan-ENTRY_ID.md                   (APPROVED + Design Ref + Success Metric + Failure Signal)
+G4-G10: git commits, build pass, lint pass, test pass (≥80% coverage), Lighthouse ≥80
+G13: docs/reports/browser-test-ENTRY_ID.md            (preview URL, screenshots, 0 errors, Matches design: YES/NO)
+G14: APPROVED comment on GitHub PR                     (Code Review Summary in PR body)
+G11: docs/reports/production-verification-ENTRY_ID.md (HTTP 200, screenshots, checklist, G3 observability verified)
+G12: docs/walkthroughs/walkthrough-ENTRY_ID.md
+```
 
 ---
 
-**Created:** 2026-02-09
-**Status:** ACTIVE & ENFORCED
-**Escalation:** Any violation = P0 incident report
+**Full reference:** `protocols/RALPH_PROTOCOL.md`
+**Scripts:** `scripts/gates/gate-N-*.js`
+**Quick ref card:** `guides/AI_CODER_QUICK_REF.md`
+
+---
+
+**v14.0 — 2026-02-21 — ACTIVE & ENFORCED**
