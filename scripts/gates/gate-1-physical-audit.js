@@ -70,7 +70,10 @@ function main() {
     console.error(`  ## Current State Analysis`);
     console.error(`  ## Production State`);
     console.error(`  ## Files / Dependency Analysis`);
-    console.error(`  ## Known Issues`);
+    console.error(`  ## Existing Components  ← NEW: list ALL components in the feature area`);
+    console.error(`       For UI features: also list src/components/layout/ app-wide.`);
+    console.error(`       State explicitly: "No conflicts" or document the conflict.`);
+    console.error(`       INCIDENT-002: vertical sidebar built when horizontal Header existed.`);
     process.exit(1);
   }
 
@@ -126,6 +129,17 @@ function main() {
       pattern: /##.*Files|##.*Dependencies|##.*Changed|##.*Dependency/i,
       name: 'Files / Dependency Analysis section'
     },
+    {
+      pattern: /##.*Existing\s+Components?|##.*Component\s+Inventor|##.*Related\s+Components?|##.*Global\s+(Layout|Design|Arch)/i,
+      name: 'Existing Components Inventory (## Existing Components or ## Component Inventory)\n' +
+           '   WHY: INCIDENT-002 — Antigravity built a vertical sidebar when a horizontal\n' +
+           '   Header already existed. Gate 1 passed because no section required listing\n' +
+           '   existing components before planning new ones. This section forces that.\n' +
+           '   Required content: list every component in src/components/layout/ (or equivalent)\n' +
+           '   that overlaps with the feature area. For UI features: also list all navigation,\n' +
+           '   layout, and shell components app-wide — not just in the target folder.\n' +
+           '   Explicitly state: "No conflicts found" OR document the conflict and resolution.'
+    },
   ];
 
   for (const section of requiredSections) {
@@ -138,7 +152,28 @@ function main() {
     }
   }
 
-  // --- Check 4: No unfilled template placeholders ---
+  // --- Check 4: UI features must reference global layout/nav components ---
+  // INCIDENT-002: Antigravity built a vertical sidebar without reading Header.tsx.
+  // If the audit mentions any UI terms (nav, sidebar, dashboard, layout, component),
+  // it MUST also reference the global layout/shell (src/components/layout or app/layout).
+  const isUiFeature = /sidebar|navigation|nav\b|header|layout|dashboard|shell|component/i.test(content);
+  if (isUiFeature) {
+    console.log('🖼️  UI feature detected — checking global layout reference...');
+    const hasGlobalLayoutRef =
+      /src\/components\/layout|app\/layout|_app\.|global.*layout|layout.*global|existing.*nav|nav.*existing|Header\.(tsx|jsx|ts|js)/i.test(content);
+    if (!hasGlobalLayoutRef) {
+      violations.push(
+        'UI feature audit is missing a reference to the global layout/navigation. ' +
+        'INCIDENT-002: A vertical sidebar was built without reading the existing horizontal Header. ' +
+        'The audit must explicitly reference src/components/layout/ (or equivalent) and confirm ' +
+        'the planned component does not duplicate or conflict with existing navigation/layout components.'
+      );
+    } else {
+      console.log(`   ✅ Global layout reference found`);
+    }
+  }
+
+  // --- Check 6: No unfilled template placeholders ---
   console.log('🔍 Checking for unfilled template placeholders...');
   const templatePatterns = [/\[INSERT\]/i, /\[TODO\]/i, /\[FILL IN\]/i, /your_description_here/i, /\[PASTE\]/i];
   const foundPlaceholder = templatePatterns.find(p => content.match(p));
