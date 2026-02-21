@@ -1,14 +1,14 @@
 {
   "protocol": {
     "name": "Ralph Master Playbook",
-    "version": "13.0.0",
+    "version": "14.0.0",
     "effective_date": "2026-02-21",
     "status": "FINAL",
     "purpose": "Immutable server-side governance with cryptographic proofs. Local Verifier Agent auto-launches for real-time feedback but cannot bypass server-side CI. One-time full baseline retro-audit per project + permanent automatic delta enforcement on any legacy file change.",
     "scope": "All synced projects under surajsatyarthi/ralph-protocols",
     "non_retrospective_default": true,
     "retro_audit_enabled": true,
-    "changelog": "v13.1: Added G13 (Antigravity Browser Walkthrough on Preview URL). G13 gates before G11 in sequence: preview browser test blocks PR merge, human production sign-off runs after merge. Added INCIDENT-001 lessons to G6 (external integration mock rule), G7 (env parity check), G11 (mobile+desktop screenshots + manual checklist), G13 (browser walkthrough on preview). v13.0: Added missing G1 (Physical Audit), G4 (Implementation Integrity), G8 (TDD Proof), G11 (Production Verification). Added Node.js runtime check to G0. Fixed gate numbering consistency with RALPH_PROTOCOL.md. All 13 technical gates now enforced."
+    "changelog": "v14.0: 4-phase revamp. Phase 1: G2 now requires ## Codebase Search section (prevents re-building existing features, INCIDENT-002 root cause). Phase 2: G3 plan now requires ## Design Reference (UI features), ## Success Metric, ## Failure Signal; G13 browser report must confirm 'Matches design: YES/NO' when design ref exists. Phase 3: Added G14 (PM Code Review) between G13 and G11 — Antigravity posts Code Review Summary to PR, PM comments APPROVED before merge. Phase 4: G11 now verifies G3 plan has Success Metric + Failure Signal before production sign-off. Gate sequence updated to include G14: G0→G1→G2→G3→G4→G5→G6→G7→G8→G9→G10→G13→G14→G11→G12. v13.1: Added G13 (Antigravity Browser Walkthrough on Preview URL). v13.0: Added missing G1, G4, G8, G11."
   },
   "core_principles": [
     "Server-side supremacy: GitHub Rulesets + CI runner is the final authority (untouchable by local agent)",
@@ -17,7 +17,7 @@
     "One-time full baseline retro-audit (user-triggered once per project) + permanent automatic delta on any legacy change",
     "Central GitHub repo as single source of truth with postinstall auto-sync and ingestion",
     "No local bypass possible — merge blocked at GitHub level",
-    "All 13 gates must be enforced — gaps in gate coverage are P0 protocol violations"
+    "All 14 gates must be enforced — gaps in gate coverage are P0 protocol violations"
   ],
   "enforcement_layers": {
     "github_primary": {
@@ -58,7 +58,7 @@
     "action_on_sync": "Pull latest playbook JSON → place in .agent/ → trigger Antigravity ingestion → auto-spawn local Verifier Agent → prepare for one-time baseline retro-audit"
   },
   "gates": {
-    "_note": "All 12 technical gates are mandatory and sequential. Gate numbers must match RALPH_PROTOCOL.md. Missing gates are P0 violations.",
+    "_note": "All 14 technical gates are mandatory and sequential. Gate numbers must match RALPH_PROTOCOL.md. Missing gates are P0 violations.",
     "technical": [
       {
         "id": "G0",
@@ -101,14 +101,15 @@
         "phase": "ASSESSMENT",
         "mandatory": true,
         "blocking": true,
-        "description": "3+ documented web searches required. MUST happen AFTER G1 (you cannot research effectively without knowing current state). MUST happen BEFORE G3 (you cannot plan without research).",
+        "description": "3+ documented web searches required. MUST also include a Codebase Search to prevent re-building existing functionality (INCIDENT-002 root cause). MUST happen AFTER G1 (you cannot research effectively without knowing current state). MUST happen BEFORE G3 (you cannot plan without research).",
         "artifacts": ["docs/research/ENTRY_ID-research.md"],
         "artifact_note": "Legacy projects may use audit-gate-0-ENTRY_ID.log at project root. Both are accepted. New projects MUST use docs/research/ path.",
         "required_sections": [
           "Minimum 3 web searches (## Search #N headers)",
           "Minimum 5 source citations",
           "Alternatives Considered section",
-          "Key Findings section"
+          "Key Findings section",
+          "## Codebase Search — grep/search results proving the feature does not already exist in the repo"
         ],
         "minimum_words": 1000,
         "enforcement": "pre-commit hook blocks commits without research artifact"
@@ -121,13 +122,16 @@
         "phase": "PLANNING",
         "mandatory": true,
         "blocking": true,
-        "description": "Implementation plan with Alternatives Considered. CEO/PM approval REQUIRED. No code before approval.",
+        "description": "Implementation plan with Alternatives Considered. CEO/PM approval REQUIRED. No code before approval. UI features require a Design Reference. All plans require Success Metric and Failure Signal for observability.",
         "artifacts": ["implementation-plan-ENTRY_ID.md"],
         "required_sections": [
           "Problem Statement",
           "Proposed Solution",
           "Alternatives Considered",
           "Files to Change",
+          "## Design Reference — required for UI features: Figma link, screenshot path, or written layout description",
+          "## Success Metric — the single number/signal that proves the feature works",
+          "## Failure Signal — the log line/error that indicates the feature is broken",
           "Approval signature (APPROVED + name + date)"
         ],
         "enforcement": "pre-commit hook checks for APPROVED signature in plan file"
@@ -286,6 +290,26 @@
         "enforcement": "browser-test report + mobile screenshot (375px) + desktop screenshot (1280px) + console errors = 0 + user flow checklist fully checked"
       },
       {
+        "id": "G14",
+        "name": "PM Code Review",
+        "skill": "g14-pm-review",
+        "script": "scripts/gates/gate-14-pm-review.js",
+        "phase": "VERIFICATION",
+        "mandatory": true,
+        "blocking": true,
+        "description": "PM must review the actual code and approve it before production merge. Antigravity posts a Code Review Summary to the PR (files changed + why, files NOT changed + why). PM reviews code diff + summary, then comments 'APPROVED'. Blocks merge until APPROVED comment is present.",
+        "why_this_gate_exists": "Without human review, Antigravity self-certifies its own work. This gate forces a human checkpoint before production merge. Antigravity is fast but not infallible — the PM review catches logic errors, scope creep, and security issues that automated gates miss.",
+        "artifacts": ["Code Review Summary in PR body", "APPROVED comment from PM on the PR"],
+        "code_review_summary_required": [
+          "## Code Review Summary header in PR body",
+          "List of files changed + reason each was changed",
+          "List of files NOT changed + reason each was not changed",
+          "Any deviations from approved G3 plan + justification"
+        ],
+        "usage": "node scripts/gates/gate-14-pm-review.js ENTRY-XXX PR_NUMBER",
+        "enforcement": "gh CLI checks PR comments for 'APPROVED' from any reviewer; PR body checked for Code Review Summary"
+      },
+      {
         "id": "G12",
         "name": "Documentation Completeness",
         "skill": "g12-validate",
@@ -305,9 +329,10 @@
       {"id": "PM-G6", "name": "Atomic Ledger Approval", "skill": "pm-g6-approve"}
     ]
   },
-  "gate_sequence_rule": "Gates must be executed in order G0 → G1 → G2 → G3 → G4 → G5 → G6 → G7 → G8 → G9 → G10 → G13 → G11 → G12. Skipping any gate is a P0 violation. G13 (Browser Preview) MUST run before G11 (Production) — Antigravity tests the preview URL first, then a human signs off on production after merge. G1 must precede G2 (observe before researching). G2 must precede G3 (research before planning). G3 must precede G4 (plan before coding).",
+  "gate_sequence_rule": "Gates must be executed in order G0 → G1 → G2 → G3 → G4 → G5 → G6 → G7 → G8 → G9 → G10 → G13 → G14 → G11 → G12. Skipping any gate is a P0 violation. G13 (Browser Preview) MUST run before G14 (PM Review) which MUST run before G11 (Production). G1 must precede G2 (observe before researching). G2 must precede G3 (research before planning). G3 must precede G4 (plan before coding).",
   "gate_sequence_explanation": {
-    "G13_before_G11": "G13 tests the Vercel/Netlify PREVIEW URL (before merge). If it fails, the PR is blocked — users never see broken code. G11 tests the PRODUCTION URL (after merge). Together they form a two-layer safety net: automated browser check on preview, then human sign-off on production.",
+    "G13_before_G14_before_G11": "G13 tests the Vercel/Netlify PREVIEW URL (before merge). G14 requires PM to review the code and approve. G11 tests the PRODUCTION URL (after merge). Together they form a three-layer safety net: automated browser check → human code review → human production sign-off.",
+    "G14_rationale": "G14 forces a human code review checkpoint. Antigravity posts a Code Review Summary to the PR (files changed + why, files NOT changed + why). PM reviews and comments APPROVED. Without this, Antigravity self-certifies its own work.",
     "why_not_localhost": "G13 explicitly requires a preview deployment URL, not localhost. Localhost has local .env files; preview uses the same infrastructure as production. Missing env vars (INCIDENT-001 root cause) show up on preview, not on localhost."
   },
   "critical_sequence_note": "G1 (Physical Audit) MUST come before G2 (Research). You cannot conduct meaningful research without first directly observing what currently exists in the codebase and production. This is non-negotiable.",
