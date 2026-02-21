@@ -51,6 +51,19 @@ function main() {
     violations.push(`OWASP checklist incomplete (${results.owaspChecklist.completed}/${results.owaspChecklist.total})`);
   }
 
+  // Check 4: Environment Variable Parity
+  // Lesson from INCIDENT-001: GITHUB_CLIENT_ID was undefined in production.
+  // 99 tests passed because OAuth was mocked. Users got 404 on first click.
+  // This check compares .env.example required vars against the current environment.
+  console.log('🌍 Checking environment variable parity...');
+  results.envParity = checkEnvParity();
+  if (results.envParity.missing.length > 0) {
+    violations.push(
+      `${results.envParity.missing.length} required env var(s) missing from current environment: ` +
+      results.envParity.missing.join(', ')
+    );
+  }
+
   // Generate report
   const report = {
     entry: entryId,
@@ -72,7 +85,8 @@ function main() {
   console.log(`   Critical vulnerabilities: ${results.npmAudit.critical}`);
   console.log(`   High vulnerabilities: ${results.npmAudit.high}`);
   console.log(`   OWASP checklist: ${results.owaspChecklist.completed}/${results.owaspChecklist.total}`);
-  
+  console.log(`   Env vars verified: ${results.envParity.checked} (${results.envParity.missing.length} missing)`);
+
   process.exit(0);
 }
 
@@ -202,6 +216,87 @@ function checkOwaspCompliance(entryId) {
   };
 }
 
+/**
+ * checkEnvParity — INCIDENT-001 Prevention
+ *
+ * Reads .env.example and checks every variable against the current process.env.
+ * Critical variables (OAuth, payment, DB, auth secrets) that are undefined in
+ * the current environment (CI = production) will BLOCK Gate 7.
+ *
+ * Why: INCIDENT-001 root cause was GITHUB_CLIENT_ID=undefined in Vercel.
+ * 99 tests passed because OAuth was fully mocked. Users hit 404 on first click.
+ * This check would have caught that before deployment.
+ */
+function checkEnvParity() {
+  const envExampleCandidates = ['.env.example', '.env.example.local', '.env.sample'];
+  let envExamplePath = null;
+
+  for (const candidate of envExampleCandidates) {
+    const full = path.join(WORKSPACE_ROOT, candidate);
+    if (fs.existsSync(full)) {
+      envExamplePath = full;
+      break;
+    }
+  }
+
+  if (!envExamplePath) {
+    console.log('   ⚠️  No .env.example found — skipping env parity check');
+    console.log('      Create .env.example listing all required variables to enable this check.');
+    return { checked: 0, missing: [], skipped: true };
+  }
+
+  const content = fs.readFileSync(envExamplePath, 'utf-8');
+  const lines = content.split('\n');
+
+  // Parse variable names: lines like VAR_NAME=... or VAR_NAME=
+  const varNames = lines
+    .map(line => line.trim())
+    .filter(line => line && !line.startsWith('#'))
+    .map(line => line.split('=')[0].trim())
+    .filter(Boolean);
+
+  // Critical prefixes/patterns — these MUST be present in production
+  const criticalPatterns = [
+    /CLIENT_ID$/i,
+    /CLIENT_SECRET$/i,
+    /API_KEY$/i,
+    /SECRET$/i,
+    /DATABASE_URL/i,
+    /SUPABASE_URL/i,
+    /SUPABASE_ANON_KEY/i,
+    /AUTH_SECRET/i,
+    /NEXTAUTH_SECRET/i,
+    /STRIPE_/i,
+    /RAZORPAY_/i,
+    /SENDGRID_/i,
+    /RESEND_/i,
+    /SMTP_/i,
+  ];
+
+  const missing = [];
+  let checked = 0;
+
+  for (const varName of varNames) {
+    const isCritical = criticalPatterns.some(p => p.test(varName));
+    if (!isCritical) continue; // Only check critical vars — not NEXT_PUBLIC_SITE_NAME etc.
+
+    checked++;
+    const value = process.env[varName];
+    if (!value || value === 'undefined' || value === '') {
+      console.error(`   ❌ MISSING in environment: ${varName}`);
+      missing.push(varName);
+    } else {
+      console.log(`   ✅ ${varName} is set`);
+    }
+  }
+
+  if (checked === 0) {
+    console.log('   ℹ️  No critical environment variables found in .env.example');
+  }
+
+  return { checked, missing, skipped: false };
+}
+
 function saveReport(entryId, report) {
   const reportContent = `# Gate 7 Security Report - ${entryId}
 
@@ -232,6 +327,18 @@ ${report.results.secrets.details.length > 5 ? `\n... and ${report.results.secret
 
 - **Completed:** ${report.results.owaspChecklist.completed}/${report.results.owaspChecklist.total}
 - **Status:** ${report.results.owaspChecklist.complete ? '✅ Complete' : '❌ Incomplete'}
+
+## Environment Variable Parity (INCIDENT-001 Prevention)
+
+- **Variables Checked:** ${report.results.envParity ? report.results.envParity.checked : 'N/A'}
+- **Missing from Environment:** ${report.results.envParity ? report.results.envParity.missing.length : 'N/A'}
+- **Status:** ${!report.results.envParity ? 'N/A' : report.results.envParity.skipped ? '⚠️ Skipped (no .env.example)' : report.results.envParity.missing.length === 0 ? '✅ All critical vars present' : '❌ Missing vars: ' + report.results.envParity.missing.join(', ')}
+
+${report.results.envParity && report.results.envParity.missing.length > 0 ? `
+> ⚠️ INCIDENT-001 ROOT CAUSE: Missing env vars are the #1 cause of "CI green, production broken."
+> These variables are defined in .env.example but not present in the current environment.
+> Add them to your production environment (Vercel, Netlify, Railway etc.) before deploying.
+` : ''}
 
 ## Violations
 

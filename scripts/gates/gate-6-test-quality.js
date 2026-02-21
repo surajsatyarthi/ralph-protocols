@@ -29,7 +29,8 @@ function main() {
     coverage: analyzeCoverage(),
     testQuality: analyzeTestQuality(),
     mockRatio: analyzeMockRatio(),
-    integrationTests: findIntegrationTests()
+    integrationTests: findIntegrationTests(),
+    externalIntegrationCoverage: checkExternalIntegrationCoverage()
   };
 
   // Validation rules
@@ -47,7 +48,7 @@ function main() {
   }
 
   // Rule 3: Mock ratio must be < 80% for integration tests
-  const highMockTests = report.mockRatio.tests.filter(t => 
+  const highMockTests = report.mockRatio.tests.filter(t =>
     t.isIntegration && t.mockRatio > 0.8
   );
   if (highMockTests.length > 0) {
@@ -57,6 +58,20 @@ function main() {
   // Rule 4: Minimum 3 real integration tests
   if (report.integrationTests.real < 3) {
     violations.push(`Only ${report.integrationTests.real} real integration tests (need >=3)`);
+  }
+
+  // Rule 5: External integration fully-mocked check
+  // Lesson from INCIDENT-001: OAuth was 100% mocked. Tests passed. Production was broken.
+  // Any external integration (OAuth, payments, email) must have at least 1 non-mocked test.
+  const fullyMocked = report.externalIntegrationCoverage.fullyMocked;
+  if (fullyMocked.length > 0) {
+    fullyMocked.forEach(integration => {
+      violations.push(
+        `External integration "${integration.name}" is 100% mocked — ` +
+        `add at least 1 real test that verifies the actual connection/config. ` +
+        `(INCIDENT-001: mocked OAuth hid missing client_id until production launch)`
+      );
+    });
   }
 
   // Generate report
@@ -72,7 +87,9 @@ function main() {
   console.log(`   Coverage: ${report.coverage.current.toFixed(2)}% (Δ ${report.coverage.delta >= 0 ? '+' : ''}${report.coverage.delta.toFixed(2)}%)`);
   console.log(`   Tests analyzed: ${report.testQuality.tests.length}`);
   console.log(`   Real integration tests: ${report.integrationTests.real}`);
-  
+  console.log(`   External integrations with real tests: ${report.externalIntegrationCoverage.covered.length}`);
+  console.log(`   Fully mocked external integrations: ${report.externalIntegrationCoverage.fullyMocked.length}`);
+
   process.exit(0);
 }
 
@@ -215,6 +232,136 @@ function findTestFiles() {
 function countAssertions(content) {
   const assertions = content.match(/expect\(|assert\.|should\.|toBe|toEqual|toContain|toHaveBeenCalled/g) || [];
   return assertions.length;
+}
+
+/**
+ * checkExternalIntegrationCoverage — INCIDENT-001 Prevention
+ *
+ * Detects external integrations in the codebase (OAuth, payments, email, DB)
+ * and verifies that at least one test exists that is NOT fully mocked.
+ *
+ * Why: 99 passing mocked tests gave false confidence. OAuth was broken in production
+ * because GITHUB_CLIENT_ID was undefined — but mocks made it look fine.
+ * The rule: every external provider must have >=1 test that verifies real config.
+ */
+function checkExternalIntegrationCoverage() {
+  console.log('🔌 Checking external integration test coverage...');
+
+  // Known external integration signatures
+  const integrations = [
+    {
+      name: 'GitHub OAuth',
+      sourcePatterns: [/GITHUB_CLIENT_ID/, /github.*oauth/i, /GitHub\(\{/],
+      testIndicators: [/github/i, /oauth/i, /client_id/i],
+    },
+    {
+      name: 'Google OAuth',
+      sourcePatterns: [/GOOGLE_CLIENT_ID/, /GoogleProvider/, /google.*oauth/i],
+      testIndicators: [/google/i, /oauth/i, /client_id/i],
+    },
+    {
+      name: 'Stripe Payments',
+      sourcePatterns: [/STRIPE_SECRET_KEY/, /stripe\.com/, /new Stripe\(/],
+      testIndicators: [/stripe/i, /payment/i, /checkout/i],
+    },
+    {
+      name: 'Razorpay Payments',
+      sourcePatterns: [/RAZORPAY_KEY/, /razorpay/i],
+      testIndicators: [/razorpay/i, /payment/i],
+    },
+    {
+      name: 'Email (Resend/SendGrid/Nodemailer)',
+      sourcePatterns: [/RESEND_API_KEY/, /SENDGRID_API_KEY/, /nodemailer/i, /resend\.com/],
+      testIndicators: [/resend/i, /sendgrid/i, /email/i, /nodemailer/i],
+    },
+    {
+      name: 'Supabase',
+      sourcePatterns: [/SUPABASE_URL/, /createClient.*supabase/i],
+      testIndicators: [/supabase/i],
+    },
+  ];
+
+  // Gather source files
+  let sourceFiles = [];
+  try {
+    sourceFiles = execSync(
+      'find . -type f \\( -name "*.ts" -o -name "*.js" \\) | grep -v node_modules | grep -v ".test." | grep -v ".spec."',
+      { encoding: 'utf-8', cwd: WORKSPACE_ROOT }
+    ).split('\n').filter(Boolean);
+  } catch { /* no files */ }
+
+  // Gather test files
+  let testFiles = [];
+  try {
+    testFiles = execSync(
+      'find . -name "*.test.ts" -o -name "*.test.js" -o -name "*.spec.ts" -o -name "*.spec.js" | grep -v node_modules',
+      { encoding: 'utf-8', cwd: WORKSPACE_ROOT }
+    ).split('\n').filter(Boolean);
+  } catch { /* no files */ }
+
+  const covered = [];    // integrations with at least 1 real test
+  const fullyMocked = []; // integrations where all tests are mocked
+  const notDetected = []; // integrations not present in codebase
+
+  for (const integration of integrations) {
+    // Step 1: Does this integration exist in the source code?
+    const inSource = sourceFiles.some(file => {
+      try {
+        const content = fs.readFileSync(path.join(WORKSPACE_ROOT, file), 'utf-8');
+        return integration.sourcePatterns.some(p => p.test(content));
+      } catch { return false; }
+    });
+
+    if (!inSource) {
+      notDetected.push(integration.name);
+      continue;
+    }
+
+    // Step 2: Find test files related to this integration
+    const relatedTests = testFiles.filter(file => {
+      try {
+        const content = fs.readFileSync(path.join(WORKSPACE_ROOT, file), 'utf-8');
+        return integration.testIndicators.some(p => p.test(content));
+      } catch { return false; }
+    });
+
+    if (relatedTests.length === 0) {
+      // Integration exists in source but no tests at all — counts as fully mocked
+      fullyMocked.push({
+        name: integration.name,
+        reason: 'No test files found for this integration',
+        relatedTests: []
+      });
+      continue;
+    }
+
+    // Step 3: Check if ALL related tests mock the entire integration
+    const hasRealTest = relatedTests.some(file => {
+      try {
+        const content = fs.readFileSync(path.join(WORKSPACE_ROOT, file), 'utf-8');
+        // A test is "real" if it does NOT mock the provider module at the top level
+        // Heuristic: if vi.mock/jest.mock appears for the integration's core module, it's mocked
+        const mockLines = (content.match(/vi\.mock\(|jest\.mock\(/g) || []).length;
+        const testCount = (content.match(/it\(|test\(/g) || []).length;
+        // If mock count is >= test count, very likely fully mocked
+        return mockLines < testCount;
+      } catch { return false; }
+    });
+
+    if (hasRealTest) {
+      covered.push({ name: integration.name, testCount: relatedTests.length });
+      console.log(`   ✅ ${integration.name}: has real tests`);
+    } else {
+      fullyMocked.push({
+        name: integration.name,
+        reason: 'All test files appear to fully mock this integration',
+        relatedTests: relatedTests.map(f => path.relative(WORKSPACE_ROOT, path.join(WORKSPACE_ROOT, f)))
+      });
+      console.error(`   ❌ ${integration.name}: ALL tests are mocked — INCIDENT-001 risk`);
+    }
+  }
+
+  return { covered, fullyMocked, notDetected };
 }
 
 function saveReport(entryId, report, violations) {

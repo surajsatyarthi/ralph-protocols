@@ -1,13 +1,14 @@
 {
   "protocol": {
     "name": "Ralph Master Playbook",
-    "version": "12.0.0",
-    "effective_date": "2026-02-17",
+    "version": "13.0.0",
+    "effective_date": "2026-02-21",
     "status": "FINAL",
     "purpose": "Immutable server-side governance with cryptographic proofs. Local Verifier Agent auto-launches for real-time feedback but cannot bypass server-side CI. One-time full baseline retro-audit per project + permanent automatic delta enforcement on any legacy file change.",
-    "scope": "All five synced projects under surajsatyarthi/ralph-protocols",
+    "scope": "All synced projects under surajsatyarthi/ralph-protocols",
     "non_retrospective_default": true,
-    "retro_audit_enabled": true
+    "retro_audit_enabled": true,
+    "changelog": "v13.1: Added G13 (Antigravity Browser Walkthrough on Preview URL). G13 gates before G11 in sequence: preview browser test blocks PR merge, human production sign-off runs after merge. Added INCIDENT-001 lessons to G6 (external integration mock rule), G7 (env parity check), G11 (mobile+desktop screenshots + manual checklist), G13 (browser walkthrough on preview). v13.0: Added missing G1 (Physical Audit), G4 (Implementation Integrity), G8 (TDD Proof), G11 (Production Verification). Added Node.js runtime check to G0. Fixed gate numbering consistency with RALPH_PROTOCOL.md. All 13 technical gates now enforced."
   },
   "core_principles": [
     "Server-side supremacy: GitHub Rulesets + CI runner is the final authority (untouchable by local agent)",
@@ -15,7 +16,8 @@
     "Cryptographic HMAC proofs required for every gate — forged local files rejected by CI",
     "One-time full baseline retro-audit (user-triggered once per project) + permanent automatic delta on any legacy change",
     "Central GitHub repo as single source of truth with postinstall auto-sync and ingestion",
-    "No local bypass possible — merge blocked at GitHub level"
+    "No local bypass possible — merge blocked at GitHub level",
+    "All 13 gates must be enforced — gaps in gate coverage are P0 protocol violations"
   ],
   "enforcement_layers": {
     "github_primary": {
@@ -27,7 +29,7 @@
       "skills": ".agent/skills/ralph-enforcer/ (one SKILL.md per gate, auto-equipped)",
       "terminal_policy": "Request review for git/npm/db/shell; safe-exec wrapper",
       "verifier_agent": {
-        "prompt": "You are Ralph Verifier v12.0. Auto-spawn on project open as helper. Monitor changes and provide real-time feedback. Do NOT allow bypass — final decision is always GitHub CI.",
+        "prompt": "You are Ralph Verifier v13.0. Auto-spawn on project open as helper. Monitor changes and provide real-time feedback. Do NOT allow bypass — final decision is always GitHub CI.",
         "spawn": "Automatic on project open (persistent background)",
         "retro_mode": "one_time_full_baseline + permanent_delta_automatic"
       }
@@ -56,16 +58,245 @@
     "action_on_sync": "Pull latest playbook JSON → place in .agent/ → trigger Antigravity ingestion → auto-spawn local Verifier Agent → prepare for one-time baseline retro-audit"
   },
   "gates": {
+    "_note": "All 12 technical gates are mandatory and sequential. Gate numbers must match RALPH_PROTOCOL.md. Missing gates are P0 violations.",
     "technical": [
-      {"id": "G0", "name": "Pre-Assignment Dupe Blocker", "skill": "g0-pre-assign"},
-      {"id": "G2", "name": "External Research Validation", "skill": "g2-research"},
-      {"id": "G3", "name": "Scope Validation", "skill": "g3-scope"},
-      {"id": "G5", "name": "Strict Lint Suppression", "skill": "g5-lint-strict"},
-      {"id": "G6", "name": "Test Quality Analysis", "skill": "g6-test-quality"},
-      {"id": "G7", "name": "Security Suite", "skill": "g7-security"},
-      {"id": "G9", "name": "Accessibility Validation", "skill": "g9-accessibility"},
-      {"id": "G10", "name": "Performance (Median Lighthouse ≥80)", "skill": "g10-performance"},
-      {"id": "G12", "name": "Documentation Completeness", "skill": "g12-validate"}
+      {
+        "id": "G0",
+        "name": "Pre-Assignment Dupe Blocker + Environment Pre-Flight",
+        "skill": "g0-pre-assign",
+        "script": "scripts/gates/gate-0-pre-assign.js",
+        "phase": "PRE-WORK",
+        "mandatory": true,
+        "requires_node": true,
+        "node_min_version": "18.0.0",
+        "blocking": true,
+        "description": "Prevents duplicate work. Validates runtime environment (Node.js ≥18, required env vars, service connectivity). Generates .env-validated.log. BLOCKS all subsequent gates if Node.js not installed or env invalid.",
+        "artifacts": ["audit-gate-0-dupe-check.log", ".env-validated.log"],
+        "node_check": "node --version must return ≥18.0.0. If Node not installed, gate fails immediately with clear install instructions."
+      },
+      {
+        "id": "G1",
+        "name": "Physical Audit & State Verification",
+        "skill": "g1-physical-audit",
+        "script": "scripts/gates/gate-1-physical-audit.js",
+        "phase": "ASSESSMENT",
+        "mandatory": true,
+        "blocking": true,
+        "description": "Coder MUST directly observe current code AND production state before any research or planning. No research without knowing what actually exists. Anchored to git HEAD.",
+        "artifacts": ["docs/reports/physical-audit-ENTRY_ID.md"],
+        "required_sections": [
+          "Git HEAD hash (git rev-parse HEAD)",
+          "Current file listing of changed areas",
+          "Production state (URL, last deploy, current behavior)",
+          "Known issues and anomalies"
+        ],
+        "minimum_lines": 50,
+        "enforcement": "pre-dev hook blocks npm run dev until physical-audit-TASK_ID.md exists"
+      },
+      {
+        "id": "G2",
+        "name": "External Research Validation",
+        "skill": "g2-research",
+        "script": "scripts/gates/gate-2-research.js",
+        "phase": "ASSESSMENT",
+        "mandatory": true,
+        "blocking": true,
+        "description": "3+ documented web searches required. MUST happen AFTER G1 (you cannot research effectively without knowing current state). MUST happen BEFORE G3 (you cannot plan without research).",
+        "artifacts": ["docs/research/ENTRY_ID-research.md"],
+        "artifact_note": "Legacy projects may use audit-gate-0-ENTRY_ID.log at project root. Both are accepted. New projects MUST use docs/research/ path.",
+        "required_sections": [
+          "Minimum 3 web searches (## Search #N headers)",
+          "Minimum 5 source citations",
+          "Alternatives Considered section",
+          "Key Findings section"
+        ],
+        "minimum_words": 1000,
+        "enforcement": "pre-commit hook blocks commits without research artifact"
+      },
+      {
+        "id": "G3",
+        "name": "Scope Validation & Blueprint RFC",
+        "skill": "g3-scope",
+        "script": "scripts/gates/gate-3-scope.js",
+        "phase": "PLANNING",
+        "mandatory": true,
+        "blocking": true,
+        "description": "Implementation plan with Alternatives Considered. CEO/PM approval REQUIRED. No code before approval.",
+        "artifacts": ["implementation-plan-ENTRY_ID.md"],
+        "required_sections": [
+          "Problem Statement",
+          "Proposed Solution",
+          "Alternatives Considered",
+          "Files to Change",
+          "Approval signature (APPROVED + name + date)"
+        ],
+        "enforcement": "pre-commit hook checks for APPROVED signature in plan file"
+      },
+      {
+        "id": "G4",
+        "name": "Implementation Integrity",
+        "skill": "g4-implementation",
+        "script": "scripts/gates/gate-4-implementation.js",
+        "phase": "EXECUTION",
+        "mandatory": true,
+        "blocking": true,
+        "description": "Verifies actual code changes match the approved G3 plan. Blocks scope creep (>30% unplanned files). Requires commits on branch.",
+        "artifacts": ["implementation-plan-ENTRY_ID.md (updated with implementation log)"],
+        "scope_creep_threshold": "30% unplanned files triggers violation",
+        "enforcement": "runs during implementation, verified at pre-commit"
+      },
+      {
+        "id": "G5",
+        "name": "Strict Lint Suppression Check",
+        "skill": "g5-lint-strict",
+        "script": "scripts/gates/gate-5-lint-strict.js",
+        "phase": "EXECUTION",
+        "mandatory": true,
+        "blocking": true,
+        "description": "Bans all lint suppression comments (eslint-disable, @ts-ignore, @ts-nocheck) without documented justification. Zero-tolerance for unexplained suppressions.",
+        "enforcement": "scans all changed files for suppression patterns"
+      },
+      {
+        "id": "G6",
+        "name": "Test Quality Analysis",
+        "skill": "g6-test-quality",
+        "script": "scripts/gates/gate-6-test-quality.js",
+        "phase": "EXECUTION",
+        "mandatory": true,
+        "blocking": true,
+        "description": "Tests must have adequate assertion density (≥3 per test), real integration tests (not all mocked), no coverage regression. CRITICAL: Every external integration (OAuth, payments, email, DB) must have ≥1 test that is NOT fully mocked. 100% mocked external tests = BLOCKED.",
+        "incident_lesson": "INCIDENT-001: 99 mocked tests all passed. OAuth had client_id=undefined in production. Users got 404 on first click. Mocked tests created false confidence.",
+        "external_integration_rule": "For each external provider (GitHub OAuth, Google OAuth, Stripe, Supabase, Resend, etc.) detected in source code, at least 1 test must verify real configuration — not fully mocked.",
+        "enforcement": "analyzes test files for assertion count, mock ratio, and external integration real test coverage"
+      },
+      {
+        "id": "G7",
+        "name": "Security Suite",
+        "skill": "g7-security",
+        "script": "scripts/gates/gate-7-security.js",
+        "phase": "EXECUTION",
+        "mandatory": true,
+        "blocking": true,
+        "description": "Secrets detection (gitleaks + regex fallback), dependency vulnerability scan (npm audit), OWASP checklist verification, ENVIRONMENT VARIABLE PARITY CHECK.",
+        "incident_lesson": "INCIDENT-001: GITHUB_CLIENT_ID was undefined in Vercel. Local .env.local had 132 vars. Production had ~15. Deployment went live with broken OAuth.",
+        "env_parity_rule": "All variables in .env.example matching critical patterns (CLIENT_ID, CLIENT_SECRET, API_KEY, SECRET, DATABASE_URL, AUTH_SECRET, SUPABASE_URL) must be present in the current environment. Missing = BLOCKED.",
+        "enforcement": "blocks on detected secrets, critical/high CVEs, or missing critical environment variables"
+      },
+      {
+        "id": "G8",
+        "name": "TDD Proof (Test-Driven Development)",
+        "skill": "g8-tdd",
+        "script": "scripts/gates/gate-8-tdd.js",
+        "phase": "EXECUTION",
+        "mandatory": true,
+        "blocking": true,
+        "description": "Tests must exist, pass, and achieve ≥80% coverage. New source files must have corresponding test files. Failing tests = blocked.",
+        "artifacts": ["docs/reports/test-results-ENTRY_ID.md"],
+        "coverage_minimum": 80,
+        "enforcement": "runs npm test, parses coverage, checks new files have tests"
+      },
+      {
+        "id": "G9",
+        "name": "Accessibility Validation",
+        "skill": "g9-accessibility",
+        "script": "scripts/gates/gate-9-accessibility.js",
+        "phase": "EXECUTION",
+        "mandatory": true,
+        "can_skip_condition": "No UI changes (backend-only task)",
+        "blocking": true,
+        "description": "Axe scan, keyboard navigation, ARIA labels. WCAG 2.1 AA minimum.",
+        "enforcement": "axe-core scan on all changed UI components"
+      },
+      {
+        "id": "G10",
+        "name": "Performance (Lighthouse ≥80)",
+        "skill": "g10-performance",
+        "script": "scripts/gates/gate-10-performance.js",
+        "phase": "VERIFICATION",
+        "mandatory": true,
+        "blocking": true,
+        "description": "Lighthouse performance score ≥80 (median of 3 runs). Bundle size must not regress by >10%.",
+        "minimum_score": 80,
+        "enforcement": "lighthouse CI run against staging URL"
+      },
+      {
+        "id": "G11",
+        "name": "Production Verification",
+        "skill": "g11-production",
+        "script": "scripts/gates/gate-11-production.js",
+        "phase": "VERIFICATION",
+        "mandatory": true,
+        "blocking": true,
+        "description": "Production must be live (HTTP 200), verified by a human on mobile AND desktop viewports, with screenshots and a signed manual checklist. HTTP 200 alone is NOT sufficient — a blank page returns 200.",
+        "incident_lesson": "INCIDENT-001: PM approved Gate 8 two minutes after deployment. No one opened the live URL. Core feature was completely broken. This gate requires a human to click through the feature on production before it can pass.",
+        "artifacts": ["docs/reports/production-verification-ENTRY_ID.md"],
+        "required_sections": [
+          "Deployment Timestamp",
+          "Deployment ID",
+          "Production URL (must return HTTP 200)",
+          "Mobile screenshot (375px viewport) — docs/reports/screenshots/[feature]-mobile.png",
+          "Desktop screenshot (1280px viewport) — docs/reports/screenshots/[feature]-desktop.png",
+          "Manual Verification Checklist (human sign-off — ALL items must be [x])",
+          "Health check results"
+        ],
+        "manual_checklist_required": [
+          "Opened production URL in browser",
+          "Feature renders correctly on mobile viewport (375px)",
+          "Feature renders correctly on desktop viewport (1280px)",
+          "Clicked through the core user flow (not just landing page)",
+          "No console errors observed",
+          "Auth/login flow tested manually (if applicable)"
+        ],
+        "monitoring": "hour_0 + hour_6 + hour_24 verification",
+        "enforcement": "HTTP ping + mobile screenshot + desktop screenshot + manual checklist with all items checked"
+      },
+      {
+        "id": "G13",
+        "name": "Antigravity Browser Walkthrough (Preview)",
+        "skill": "g13-browser",
+        "script": "scripts/gates/gate-13-browser.js",
+        "phase": "VERIFICATION",
+        "mandatory": true,
+        "blocking": true,
+        "description": "Antigravity's browser subagent tests the PREVIEW deployment URL (not localhost, not production) before the PR is merged. Verifies mobile (375px) and desktop (1280px) screenshots, zero console errors, and a complete user flow walkthrough. Blocks PR merge — users never see broken features.",
+        "incident_lesson": "Previous projects: $7,000 in tokens spent on Playwright tests against mocked backends. When the site launched, nothing worked. Junior developer fired. Project delayed 15 days. Gate 13 replaces 2 days of mocked testing with 5 minutes of real browser verification on the actual deployed preview.",
+        "why_preview_not_localhost": "Localhost has local .env files that differ from what Vercel/Netlify deploys. INCIDENT-001 OAuth worked on localhost (GITHUB_CLIENT_ID was in .env.local) but failed on production (not in Vercel env). Preview deployment uses the SAME environment as production — so missing env vars are caught here before merge.",
+        "artifacts": ["docs/reports/browser-test-ENTRY_ID.md"],
+        "screenshots_required": [
+          "docs/reports/screenshots/[feature]-mobile-375px.png",
+          "docs/reports/screenshots/[feature]-desktop-1280px.png"
+        ],
+        "required_sections": [
+          "Preview URL (Vercel/Netlify preview — NOT localhost, NOT production)",
+          "Viewport: Mobile (375px) — screenshot required",
+          "Viewport: Desktop (1280px) — screenshot required",
+          "Console Errors — count must be 0",
+          "User Flow Checklist — all items [x]"
+        ],
+        "user_flow_checklist": [
+          "Page loads without errors at preview URL",
+          "Feature is visible at mobile viewport (375px)",
+          "Feature is visible at desktop viewport (1280px)",
+          "Core user action completes successfully",
+          "No broken layouts or overlapping elements",
+          "Auth/login flow works (if applicable)"
+        ],
+        "prompt_template": "docs/prompts/gate-13-prompt-template.md",
+        "report_template": "docs/templates/browser-test-report-template.md",
+        "enforcement": "browser-test report + mobile screenshot (375px) + desktop screenshot (1280px) + console errors = 0 + user flow checklist fully checked"
+      },
+      {
+        "id": "G12",
+        "name": "Documentation Completeness",
+        "skill": "g12-validate",
+        "script": "scripts/gates/gate-12-validate.js",
+        "phase": "DOCUMENTATION",
+        "mandatory": true,
+        "blocking": true,
+        "description": "Walkthrough document required. Must cover: what changed, why, how to use, rollback procedure. MASTER_TASK_LIST.md must be updated.",
+        "artifacts": ["docs/walkthroughs/walkthrough-ENTRY_ID.md"],
+        "enforcement": "file existence + required sections check"
+      }
     ],
     "pm_strategic": [
       {"id": "PM-G1", "name": "User Research Validation", "skill": "pm-g1-user-research"},
@@ -74,17 +305,27 @@
       {"id": "PM-G6", "name": "Atomic Ledger Approval", "skill": "pm-g6-approve"}
     ]
   },
+  "gate_sequence_rule": "Gates must be executed in order G0 → G1 → G2 → G3 → G4 → G5 → G6 → G7 → G8 → G9 → G10 → G13 → G11 → G12. Skipping any gate is a P0 violation. G13 (Browser Preview) MUST run before G11 (Production) — Antigravity tests the preview URL first, then a human signs off on production after merge. G1 must precede G2 (observe before researching). G2 must precede G3 (research before planning). G3 must precede G4 (plan before coding).",
+  "gate_sequence_explanation": {
+    "G13_before_G11": "G13 tests the Vercel/Netlify PREVIEW URL (before merge). If it fails, the PR is blocked — users never see broken code. G11 tests the PRODUCTION URL (after merge). Together they form a two-layer safety net: automated browser check on preview, then human sign-off on production.",
+    "why_not_localhost": "G13 explicitly requires a preview deployment URL, not localhost. Localhost has local .env files; preview uses the same infrastructure as production. Missing env vars (INCIDENT-001 root cause) show up on preview, not on localhost."
+  },
+  "critical_sequence_note": "G1 (Physical Audit) MUST come before G2 (Research). You cannot conduct meaningful research without first directly observing what currently exists in the codebase and production. This is non-negotiable.",
   "best_practices": {
     "server_side_supremacy": "GitHub CI is the final untouchable judge — local agent cannot bypass",
     "auto_launch_helper": "Local Verifier Agent auto-spawns on project open for real-time feedback",
     "evidence_based": "Only HMAC cryptographic proofs accepted by CI",
     "defense_in_depth": true,
-    "least_privilege_terminal": true
+    "least_privilege_terminal": true,
+    "all_gates_enforced": "Every gate from G0 to G12 has a corresponding script. Missing gate scripts are P0 violations."
   },
   "clarification_questions_resolved": [
     {"question": "Auto-launch Ralph?", "answer": "Local helper auto-spawns; real enforcement is server-side GitHub CI"},
     {"question": "Evidence based?", "answer": "Yes — cryptographic HMAC proofs verified by CI runner"},
-    {"question": "Retro-analysis automatic?", "answer": "One-time full baseline (triggered once per project) + permanent automatic delta on any legacy change"}
+    {"question": "Retro-analysis automatic?", "answer": "One-time full baseline (triggered once per project) + permanent automatic delta on any legacy change"},
+    {"question": "Why was G1 missing?", "answer": "Bug in v12 — Physical Audit was dropped from master playbook. Fixed in v13. G1 is now mandatory and mechanically enforced."},
+    {"question": "Does research (G2) come before planning (G3)?", "answer": "YES. G2 (Research) is ALWAYS before G3 (Planning) which is ALWAYS before G4 (Code). This is the correct and enforced order."},
+    {"question": "What if Node.js is not installed?", "answer": "G0 fails immediately with clear error message and install instructions. No other gates can run. This was previously undetected — fixed in v13."}
   ],
   "references": [
     "https://codelabs.developers.google.com/getting-started-with-antigravity-skills",

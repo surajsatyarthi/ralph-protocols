@@ -1,104 +1,121 @@
-# 🦅 RALPH PROTOCOL v6.5 (PHASE 1 ENHANCED)
+# 🦅 RALPH PROTOCOL v7.0
 ## FAANG-Standard Technical Quality Gates
 
-**Version:** 6.5 (Phase 1: Environment Validation)
-**Effective Date:** 2026-02-11
+**Version:** 7.0 (Complete Gate Coverage + Runtime Validation)
+**Effective Date:** 2026-02-21
 **Status:** ACTIVE & MECHANICALLY ENFORCED
 **Owner:** AI Coder
-**Latest Enhancement:** Environment pre-flight validation with active connectivity testing
+**Changelog:**
+- v7.0: Added Gate 1 mechanical enforcement (was documented but unenforced).
+  Added Node.js runtime check to Gate 0. Fixed artifact naming confusion.
+  All 12 gates now have scripts. Gate sequence made explicit and unskippable.
 
 ---
 
 ## EXECUTIVE SUMMARY
 
-Ralph Protocol ensures **FAANG-level code quality** through 12 sequential gates and 11 non-negotiable commandments. After Incident #001 (Gate 2 bypass), the protocol was hardened from "honor system" to "mechanical enforcement."
+Ralph Protocol ensures **FAANG-level code quality** through **12 sequential gates** and **11 non-negotiable commandments**. Every gate is mechanically enforced — there is no honor system.
 
-**Phase 1 Enhancement (v6.5 - 2026-02-11):**
-Added **pre-flight environment validation** with active connectivity testing to prevent RALPH-003 class failures (wrong environment configuration causing wasted debugging cycles). New **Gate 0** now validates environment integrity BEFORE development starts and is required by pre-commit hooks.
+**Gate Sequence (non-negotiable order):**
+
+```
+G0 → G1 → G2 → G3 → G4 → G5 → G6 → G7 → G8 → G9 → G10 → G11 → G12
+```
+
+**The three most important sequencing rules:**
+1. **G1 before G2**: You MUST observe the current state before researching. You cannot research effectively without knowing what exists.
+2. **G2 before G3**: You MUST research before planning. You cannot plan without knowing the landscape.
+3. **G3 before G4**: You MUST have an approved plan before writing code. No code without approval.
 
 ---
 
-## 🆕 PHASE 1 ENHANCEMENTS (v6.5)
+## 🆕 v7.0 ENHANCEMENTS
 
-### Problem Identified
-The gap analysis revealed that while v6.0 claimed "mechanical enforcement," agents could still:
-- Start work with misconfigured environments (wrong ports, dead URLs)
-- Waste hours debugging environment issues instead of catching them upfront
-- Bypass research gates during development (only blocked at commit time)
+### Fix 1: Gate 1 Now Has Mechanical Enforcement
 
-### Solution: Gate 0 - Environment Pre-Flight Validation
+**Problem:** Gate 1 (Physical Audit) was documented but had no script. Any agent could skip it.
 
-**New Mandatory Step** before ANY development work:
+**Fix:** New script `scripts/gates/gate-1-physical-audit.js` enforces:
+- A physical audit document must exist (`docs/reports/physical-audit-ENTRY_ID.md`)
+- Document must be anchored to current git HEAD hash
+- Document must be ≥50 non-empty lines
+- Document must contain: Current State, Git History, Production State, Files/Dependency sections
+- Pre-dev hook now checks for BOTH G1 artifact AND G2 artifact (was only G2)
+
+### Fix 2: Node.js Runtime Check in Gate 0
+
+**Problem:** Gate 0 validated env vars and connectivity but never confirmed Node.js was installed. Agents without Node.js produced static guesses instead of real output.
+
+**Fix:** Gate 0 now fails immediately if:
+- Node.js is not installed
+- Node.js version is below 18.0.0
+- npm/pnpm is not available
+
+**Error message:** Clear install instructions with exact required version.
+
+### Fix 3: Artifact Naming Clarification
+
+**The historical naming confusion:**
+```
+audit-gate-0-TASK_ID.log  ← CONFUSINGLY NAMED (it's the G2 research artifact)
+```
+
+This file was named "gate-0" because it predates the formal gate numbering system.
+It has always been the **Gate 2 (Research)** artifact, not Gate 0.
+
+**Accepted artifact locations (both valid):**
+- `docs/research/ENTRY_ID-research.md` ← **NEW PREFERRED** (explicit, organized)
+- `audit-gate-0-ENTRY_ID.log` ← **LEGACY ACCEPTED** (backward compatible)
+
+New projects MUST use `docs/research/`. Existing projects can keep using legacy path.
+Verification scripts accept both.
+
+### Fix 4: Gate 4, 8, and 11 Scripts Added
+
+New scripts that were previously absent:
+- `scripts/gates/gate-4-implementation.js` — scope creep detection
+- `scripts/gates/gate-8-tdd.js` — test coverage enforcement
+- `scripts/gates/gate-11-production.js` — production health check
+
+---
+
+## GATE 0: Environment & Runtime Pre-Flight
+
+**Script:** `scripts/gates/gate-0-pre-assign.js`
+
+Before ANY work begins:
 
 ```bash
 npm run validate:env
 ```
 
-**What it validates:**
-1. ✅ All required environment variables present and correctly formatted
-2. ✅ Supabase URL is accessible (active HTTP ping)
-3. ✅ Supabase Auth service responds to health checks
-4. ✅ Local ports match configuration (prevents 54321 vs 55321 mismatches)
-5. ✅ Generates `.env-validated.log` as proof of validation
+**What it validates (v7.0):**
+1. ✅ **Node.js ≥18.0.0 installed** (NEW — blocks immediately if absent)
+2. ✅ npm or pnpm available
+3. ✅ All required environment variables present and correctly formatted
+4. ✅ Supabase URL is accessible (active HTTP ping)
+5. ✅ Supabase Auth service responds to health checks
+6. ✅ Local ports match configuration (prevents 54321 vs 55321 mismatches)
+7. ✅ Generates `.env-validated.log` as proof of validation
 
 **Enforcement:**
-- `predev` hook: Blocks `npm run dev` until validation passes
+- `predev` hook: Blocks `npm run dev` if Node.js absent or env invalid
 - Pre-commit hook: Rejects commits without `.env-validated.log`
-- Validation expires after 24 hours (warning shown)
+- Validation expires after 24 hours (warning shown, hard block after 48h)
 
-**Impact:**
-- Prevents entire class of environment-related debugging loops
-- Catches configuration errors in <5 seconds instead of after hours of work
-- Enables confident development knowing infrastructure is ready
-
----
-
-## CORE PRINCIPLES
-
-```yaml
-fail_safe_by_default: true      # Missing validation = blocked
-single_source_of_truth: true    # This file is the authority
-architectural_enforcement: true  # Make violations impossible
-evidence_based: true            # Every gate requires proof
+**Node.js not found error:**
 ```
+❌ BLOCKED: Node.js not found on this machine.
 
----
+Gate 0 requires Node.js ≥18.0.0 to run this project.
 
-## 4-LAYER ENFORCEMENT ARCHITECTURE (v6.5)
+Install options:
+  macOS:   brew install node@20
+  Linux:   https://nodejs.org/en/download/package-manager
+  nvm:     nvm install 20 && nvm use 20
 
-```
-┌─────────────────────────────────────────────────────┐
-│ LAYER 0: ENVIRONMENT PRE-FLIGHT (NEW v6.5) 🆕       │
-│ • npm run validate:env REQUIRED                     │
-│ • Active connectivity tests (Supabase, Auth, DB)    │
-│ • Port availability checks (prevents mismatches)    │
-│ • Generates .env-validated.log (expires 24h)        │
-│ ❌ BLOCKS npm run dev if environment invalid        │
-└────────────────────┬────────────────────────────────┘
-                     ▼
-┌─────────────────────────────────────────────────────┐
-│ LAYER 1: MANDATORY GATE 0 VALIDATION                │
-│ • Audit log required BEFORE any work                │
-│ • Research audit (3+ web searches)                  │
-│ • Dependency analysis mandatory                     │
-└────────────────────┬────────────────────────────────┘
-                     ▼
-┌─────────────────────────────────────────────────────┐
-│ LAYER 2: PLAN APPROVAL CHECKPOINT                   │
-│ • "Alternatives Considered" section required        │
-│ • CEO/PM approval signature                         │
-│ • Plan link in commit message                       │
-│ ❌ NO CODE BEFORE APPROVAL                          │
-└────────────────────┬────────────────────────────────┘
-                     ▼
-┌─────────────────────────────────────────────────────┐
-│ LAYER 3: BUILD STATUS GATE                          │
-│ ✅ npm run build (must pass)                        │
-│ ✅ npm run test (80%+ coverage)                     │
-│ ✅ npm run lint (must pass)                         │
-│ ✅ Security scan (12/12 checks)                     │
-│ ✅ Environment validation log present               │
-└─────────────────────────────────────────────────────┘
+Cannot proceed without Node.js. All gate checks will produce
+inaccurate static analysis instead of real validation.
 ```
 
 ---
@@ -111,243 +128,312 @@ evidence_based: true            # Every gate requires proof
 | 2 | **Security Law** | Never use dangerouslySetInnerHTML without DOMPurify | P0 | Build fails |
 | 3 | **JSON-LD Law** | Always use safeJsonLd() utility | P0 | Scanner blocks |
 | 4 | **Revenue Law** | Payment code uses database, not in-memory | P0 | Deploy blocked |
-| 5 | **Sequential Law** | All 12 gates in strict order | P0 | Audit log required |
+| 5 | **Sequential Law** | All 12 gates in strict order, no skipping | P0 | Audit log required |
 | 6 | **Proof Law** | Evidence = Logs + Screenshots + Git Hash | P0 | Logs required |
 | 7 | **Air-Gap Law** | DB writes via server-side only | P0 | Build fails |
 | 8 | **Context Law** | Reports anchor to Git HEAD | P1 | Hash verified |
 | 9 | **Semantic Law** | Commits reference TASK_ID | P1 | Hook rejects |
 | 10 | **Integrity Law** | Reports pass validation | P1 | Exit code blocks |
-| 11 | **RFC Law** | Plan has "Alternatives" + approval | P0 | Hook rejects |
+| 11 | **RFC Law** | Plan has "Alternatives" + CEO/PM approval | P0 | Hook rejects |
 
 ---
 
 ## THE 12 QUALITY GATES
 
-### PHASE 1: ASSESSMENT (SEQUENTIAL - MUST COMPLETE BEFORE CODING)
+### PHASE 0: PRE-FLIGHT (BEFORE ANYTHING ELSE)
 
-| Gate | Name | Time | Requirements | Enforcement |
-|------|------|------|--------------|-------------|
-| **G1** | Physical Audit & State | 1-2h | Verify current code/production via direct observation | Pre-dev hook blocks without audit |
-| **G2** | Logic Mapping & Research | 2-3h | **3+ web searches MANDATORY**, dependency analysis, edge cases | Pre-commit hook blocks without `audit-gate-0-*.log` |
+| Gate | Name | Script | Time | Requirements | Enforcement |
+|------|------|--------|------|--------------|-------------|
+| **G0** | Environment & Runtime Pre-Flight | `gate-0-pre-assign.js` | 5m | **Node.js ≥18 installed**, env vars present, services reachable | Blocks `npm run dev` and all commits |
 
-**🚨 CRITICAL CHANGE (2026-02-12):**
-- G1 and G2 are **BLOCKING gates** - cannot proceed to G3/G4 without completion
-- `npm run dev` BLOCKED until `audit-gate-0-TASK_ID.log` exists
-- Pre-commit hook REJECTS commits without audit log
-- **NO CODE BEFORE RESEARCH** - This is mechanically enforced, not optional
+---
+
+### PHASE 1: ASSESSMENT (MUST COMPLETE BEFORE PLANNING OR CODING)
+
+| Gate | Name | Script | Time | Requirements | Enforcement |
+|------|------|--------|------|--------------|-------------|
+| **G1** | Physical Audit & State | `gate-1-physical-audit.js` | 1-2h | Directly observe current code + production. Document in `docs/reports/physical-audit-ENTRY_ID.md` anchored to git HEAD. ≥50 lines. | Pre-dev hook blocks without audit file |
+| **G2** | Logic Mapping & Research | `gate-2-research.js` | 2-3h | **3+ web searches documented**. 5+ sources. Alternatives Considered. 1000+ words. Dependency analysis. | Pre-commit hook blocks without research artifact |
+
+**🚨 G1 MUST PRECEDE G2:**
+You cannot conduct meaningful research without first directly observing what exists.
+The physical audit (G1) tells you WHAT to research.
+
+**Research artifact naming:**
+- **New projects:** `docs/research/ENTRY_ID-research.md`
+- **Legacy projects:** `audit-gate-0-ENTRY_ID.log` (accepted, but migrate when possible)
+
+---
 
 ### PHASE 2: PLANNING (MUST COMPLETE BEFORE CODING)
 
-| Gate | Name | Time | Requirements | Enforcement |
-|------|------|------|--------------|-------------|
-| **G3** | Blueprint & RFC | 1-2h | Implementation plan with "Alternatives Considered", CEO/PM approval | Pre-commit hook checks for approval signature |
+| Gate | Name | Script | Time | Requirements | Enforcement |
+|------|------|--------|------|--------------|-------------|
+| **G3** | Blueprint & RFC | `gate-3-scope.js` | 1-2h | Implementation plan with "Alternatives Considered", "Files to Change", CEO/PM approval signature | Pre-commit hook checks for APPROVED signature |
 
-**🚨 CRITICAL CHANGE (2026-02-12):**
-- G3 is a **BLOCKING gate** - cannot proceed to G4 without PM/CEO approval
-- Plan must be approved in PROJECT_LEDGER.md before any implementation
-- Pre-commit hook checks for approval signature in plan file
-- **NO CODE BEFORE PLAN APPROVAL** - This is mechanically enforced
+**NO CODE BEFORE G3 APPROVAL.** This is mechanically enforced.
 
-### PHASE 3: EXECUTION (ONLY AFTER G1, G2, G3 COMPLETE)
+---
 
-| Gate | Name | Time | Requirements | When to Run |
-|------|------|------|--------------|-------------|
-| **G4** | Implementation | Varies | Execute approved plan, no scope creep | AFTER G1+G2+G3 complete |
-| **G5** | Security Audit | 30m | FAANG P0 scanner (12 checks) | DURING implementation |
-| **G6** | Performance Audit | 30m | Lighthouse 90+, bundle size check | DURING implementation |
-| **G7** | Code Quality & Build | 10m | lint, typecheck, build pass | BEFORE commit |
-| **G8** | TDD Proof | 2-4h | Unit + E2E tests, 80%+ coverage | WITH implementation |
-| **G9** | Accessibility Audit | 1h | Axe scan, keyboard nav, ARIA labels | DURING implementation |
+### PHASE 3: EXECUTION (ONLY AFTER G1 + G2 + G3 COMPLETE)
 
-**🚨 CRITICAL CHANGE (2026-02-12):**
-- G4-G9 can ONLY run AFTER G1, G2, G3 are complete
-- Attempting to code before research = pre-dev hook blocks `npm run dev`
-- Attempting to commit before plan approval = pre-commit hook rejects
+| Gate | Name | Script | Time | Requirements | Enforcement |
+|------|------|--------|------|--------------|-------------|
+| **G4** | Implementation Integrity | `gate-4-implementation.js` | Varies | Execute approved plan. Scope creep >30% = blocked. | Runs during and after implementation |
+| **G5** | Strict Lint Suppression | `gate-5-lint-strict.js` | 15m | Zero unexplained `eslint-disable`, `@ts-ignore`, `@ts-nocheck` | Scans all changed files |
+| **G6** | Test Quality Analysis | `gate-6-test-quality.js` | 30m | ≥3 assertions/test, <80% mock ratio, real integration tests | Analyzes test files |
+| **G7** | Security Suite | `gate-7-security.js` | 30m | Secrets detection, `npm audit` (no critical/high CVEs), OWASP checklist | Blocks on any secrets or critical CVEs |
+| **G8** | TDD Proof | `gate-8-tdd.js` | 2-4h | Tests must exist, pass, ≥80% coverage. New source files must have test files. | Runs test suite + coverage parser |
+| **G9** | Accessibility Audit | `gate-9-accessibility.js` | 1h | Axe scan, keyboard nav, ARIA labels. WCAG 2.1 AA. | Skip only if no UI changes |
+
+---
 
 ### PHASE 4: VERIFICATION
 
-| Gate | Name | Time | Requirements |
-|------|------|------|--------------|
-| **G10** | Staging Deployment | 30m | Deploy to staging, smoke tests |
-| **G11** | Production Verification | 1h + 24h | Live verification, screenshots, monitoring |
+| Gate | Name | Script | Time | Requirements | Enforcement |
+|------|------|--------|------|--------------|-------------|
+| **G10** | Performance | `gate-10-performance.js` | 30m | Lighthouse ≥80 (median 3 runs), bundle size no regression >10% | Lighthouse CI against staging |
+| **G11** | Production Verification | `gate-11-production.js` | 1h + 24h | Live deployment, production URL HTTP 200, screenshot evidence, health check, 24h monitoring sign-off | HTTP ping + screenshot file check |
+
+---
 
 ### PHASE 5: DOCUMENTATION
 
-| Gate | Name | Time | Requirements |
-|------|------|------|--------------|
-| **G12** | Documentation & Walkthrough | 30m | What changed, how to use, rollback procedure |
+| Gate | Name | Script | Time | Requirements | Enforcement |
+|------|------|--------|------|--------------|-------------|
+| **G12** | Documentation & Walkthrough | `gate-12-validate.js` | 30m | What changed, why, how to use, rollback procedure. MASTER_TASK_LIST updated. | File existence + required sections check |
 
 ---
 
-## SECURITY CHECKS (12 Total)
+## COMPLETE EVIDENCE REQUIREMENTS
 
-### Code Checks (4)
-- SEC-001: Payment replay attack (no in-memory Set/Map)
-- SEC-002: Mock data fallbacks in production
-- SEC-003: XSS via dangerouslySetInnerHTML
-- SEC-004: SQL injection patterns
-
-### Dependency Checks (2)
-- DEP-001: Required packages installed
-- DEP-002: Lock file sync (pnpm-lock.yaml)
-
-### Build Checks (3)
-- BLD-001: TypeScript compilation
-- BLD-002: Next.js build succeeds
-- BLD-003: ESLint passes
-
-### Deployment Checks (3)
-- DPL-001: Environment variables documented
-- DPL-002: Git state clean
-- DPL-003: No hardcoded secrets
-
----
-
-## EVIDENCE REQUIREMENTS
-
-### Before Starting Work (NEW v6.5)
+### Gate 0 (Pre-Flight)
 ```
-✅ .env-validated.log           (Environment pre-flight validation)
-                                 - Generated by: npm run validate:env
-                                 - Contains: connectivity test results
-                                 - Expires: 24 hours
+✅ .env-validated.log              — Generated by: npm run validate:env
+                                     Node.js version confirmed ≥18
+                                     Expires: 24h (warning) / 48h (hard block)
 ```
 
-### Before Implementation
+### Gate 1 (Physical Audit)
 ```
-✅ audit-gate-0-TASK_ID.log    (Research + dependency audit)
-✅ implementation_plan.md       (Plan with Alternatives)
-✅ plan-approval.txt            (CEO/PM signature)
-```
-
-### During Implementation
-```
-✅ git log with Plan reference
-✅ npm run ralph output         (Security scan)
-✅ npm run build output         (Build success)
+✅ docs/reports/physical-audit-ENTRY_ID.md
+   Required content:
+   - Current git HEAD hash
+   - Current State Analysis (what exists now)
+   - Production State (URL, last deploy, current behavior)
+   - Files/Dependency Analysis
+   - Known Issues
+   Minimum: 50 non-empty lines, no unfilled placeholders
 ```
 
-### After Completion
+### Gate 2 (Research)
 ```
-✅ gates.txt                    (All gates passed)
-✅ pre-submission-gate.txt      (Checklist complete)
-✅ self-audit.txt               (Spec alignment)
-✅ screenshots/                 (Visual proof)
+✅ docs/research/ENTRY_ID-research.md   (NEW preferred path)
+   OR audit-gate-0-ENTRY_ID.log         (legacy path, still accepted)
+   Required content:
+   - ≥3 documented web searches (## Search #N sections)
+   - ≥5 source citations
+   - Alternatives Considered section
+   - Key Findings section
+   - ≥1000 words
 ```
 
----
+### Gate 3 (Plan)
+```
+✅ implementation-plan-ENTRY_ID.md
+   Required content:
+   - Problem Statement
+   - Proposed Solution
+   - Alternatives Considered
+   - Files to Change (explicit list)
+   - Approval: "Status: APPROVED — [Name] [Date]"
+```
 
-## PRE-SUBMISSION CHECKLIST
+### Gates 4-9 (Execution)
+```
+✅ git commits on branch with TASK_ID in message
+✅ npm run build — PASSED
+✅ npm run lint — PASSED
+✅ npm run test — PASSED (coverage ≥80%)
+✅ Security scan — PASSED (no secrets, no critical CVEs)
+```
 
-```markdown
-# Pre-Submission Gate — [TASK_ID]
+### Gate 11 (Production)
+```
+✅ docs/reports/production-verification-ENTRY_ID.md
+   Required content:
+   - Deployment Timestamp
+   - Deployment ID
+   - Production URL (HTTP 200 verified)
+   - Screenshot path (file must exist)
+   - Health Check Results
+```
 
-## Quality Gates
-- [ ] npm run build — PASSED
-- [ ] npm run lint — PASSED
-- [ ] npm run test — PASSED (coverage ≥80%)
-- [ ] Security scan — PASSED (12/12)
-
-## Spec Compliance
-- [ ] Read full task spec
-- [ ] Every deliverable implemented
-- [ ] All UI sections rendered
-- [ ] All API routes correct status codes
-
-## Code Quality
-- [ ] No `any` types
-- [ ] No unused imports
-- [ ] No placeholder comments
-- [ ] Auth checks on protected routes
-
-## Evidence
-- [ ] gates.txt saved
-- [ ] screenshots captured
-- [ ] self-audit.txt complete
+### Gate 12 (Documentation)
+```
+✅ docs/walkthroughs/walkthrough-ENTRY_ID.md
+   Required sections: What Changed, Why, How to Use, Rollback Procedure
 ```
 
 ---
 
 ## ENFORCEMENT MECHANISMS
 
-### Pre-dev Hook (NEW 2026-02-12)
+### Pre-dev Hook (v7.0 — checks G0 + G1 + G2)
+
 ```bash
-# .git/hooks/pre-dev (runs before npm run dev)
 #!/bin/bash
+# .git/hooks/pre-dev
 
-echo "🔍 Ralph Protocol: Checking research gates..."
+set -e
 
-# Extract task ID from branch or environment
-TASK_ID=$(git branch --show-current | grep -oE 'ENTRY-[0-9]+' || echo "unknown")
-
-# Check Gate 2: Research audit required
-if ! ls audit-gate-0-${TASK_ID}.log 1> /dev/null 2>&1; then
-  echo ""
-  echo "❌ BLOCKED: Cannot start development without research"
-  echo ""
-  echo "Required: Complete Gate 2 (Logic Mapping & Research)"
-  echo "  - Create: audit-gate-0-${TASK_ID}.log"
-  echo "  - Must contain: 3+ web search results"
-  echo "  - Must contain: Dependency analysis"
-  echo "  - Must contain: Edge cases identified"
-  echo ""
-  echo "Fix: Complete research BEFORE coding"
+# Gate 0: Node.js must be installed
+if ! command -v node &> /dev/null; then
+  echo "❌ BLOCKED: Node.js not found."
+  echo "Install Node.js ≥18: https://nodejs.org"
   exit 1
 fi
 
-echo "✅ Research gate passed"
+NODE_MAJOR=$(node -e "process.stdout.write(process.version.match(/^v(\d+)/)[1])")
+if [ "$NODE_MAJOR" -lt 18 ]; then
+  echo "❌ BLOCKED: Node.js $NODE_MAJOR found, require ≥18"
+  exit 1
+fi
+
+# Gate 0: Environment validated
+if [ ! -f ".env-validated.log" ] && [ ! -f "bmn-site/.env-validated.log" ]; then
+  echo "❌ BLOCKED: Environment not validated. Run: npm run validate:env"
+  exit 1
+fi
+
+# Extract TASK_ID from branch name
+TASK_ID=$(git branch --show-current | grep -oE 'ENTRY-[A-Za-z0-9._-]+' || echo "unknown")
+
+# Gate 1: Physical audit must exist BEFORE research
+AUDIT_FOUND=false
+for path in \
+  "docs/reports/physical-audit-${TASK_ID}.md" \
+  "bmn-site/docs/reports/physical-audit-${TASK_ID}.md"; do
+  [ -f "$path" ] && AUDIT_FOUND=true && break
+done
+
+if [ "$AUDIT_FOUND" = false ] && [ "$TASK_ID" != "unknown" ]; then
+  echo ""
+  echo "❌ BLOCKED: Gate 1 (Physical Audit) not complete."
+  echo ""
+  echo "You must observe the current code and production state BEFORE"
+  echo "doing any research or writing any code."
+  echo ""
+  echo "Create: docs/reports/physical-audit-${TASK_ID}.md"
+  echo "Required sections: Current State, Git HEAD, Production State, Files"
+  echo "Minimum: 50 non-empty lines"
+  echo ""
+  exit 1
+fi
+
+# Gate 2: Research audit must exist
+RESEARCH_FOUND=false
+for path in \
+  "docs/research/${TASK_ID}-research.md" \
+  "audit-gate-0-${TASK_ID}.log" \
+  "bmn-site/docs/research/${TASK_ID}-research.md" \
+  "bmn-site/audit-gate-0-${TASK_ID}.log"; do
+  [ -f "$path" ] && RESEARCH_FOUND=true && break
+done
+
+if [ "$RESEARCH_FOUND" = false ] && [ "$TASK_ID" != "unknown" ]; then
+  echo ""
+  echo "❌ BLOCKED: Gate 2 (Research) not complete."
+  echo ""
+  echo "Required: docs/research/${TASK_ID}-research.md"
+  echo "Must contain: 3+ web searches, 5+ sources, Alternatives Considered, 1000+ words"
+  echo ""
+  exit 1
+fi
+
+echo "✅ Pre-dev gates passed (G0 Node.js, G1 Physical Audit, G2 Research)"
 ```
 
-### Pre-commit Hook (v6.6 Enhanced - 2026-02-12)
+### Pre-commit Hook (v7.0)
+
 ```bash
-# .git/hooks/pre-commit
 #!/bin/bash
+# .git/hooks/pre-commit
 
-# Extract task ID
-TASK_ID=$(git branch --show-current | grep -oE 'ENTRY-[0-9]+' || echo "unknown")
+set -e
 
-# Check environment validation
-if ! test -f ".env-validated.log"; then
-  echo "❌ BLOCKED: Environment not validated"
-  echo "Fix: Run 'npm run validate:env' first"
+# Node.js check
+if ! command -v node &> /dev/null; then
+  echo "❌ BLOCKED: Node.js not found. Install Node.js ≥18."
   exit 1
 fi
 
-# Check Gate 2: Research audit exists (CRITICAL)
-if ! ls audit-gate-0-${TASK_ID}.log 1> /dev/null 2>&1; then
-  echo "❌ BLOCKED: No research audit log found"
-  echo "Required: audit-gate-0-${TASK_ID}.log"
-  echo "Fix: You MUST complete Gate 2 research BEFORE coding"
+# Env validation
+if [ ! -f ".env-validated.log" ] && [ ! -f "bmn-site/.env-validated.log" ]; then
+  echo "❌ BLOCKED: Run 'npm run validate:env' first"
   exit 1
 fi
 
-# Check Gate 3: Plan approval exists (CRITICAL)
-if ! ls implementation-plan-${TASK_ID}.md 1> /dev/null 2>&1; then
-  echo "❌ BLOCKED: No implementation plan found"
-  echo "Required: implementation-plan-${TASK_ID}.md"
-  echo "Fix: You MUST get plan approved BEFORE coding"
-  exit 1
+TASK_ID=$(git branch --show-current | grep -oE 'ENTRY-[A-Za-z0-9._-]+' || echo "unknown")
+
+# Gate 1: Physical audit
+if [ "$TASK_ID" != "unknown" ]; then
+  AUDIT_FOUND=false
+  for path in \
+    "docs/reports/physical-audit-${TASK_ID}.md" \
+    "bmn-site/docs/reports/physical-audit-${TASK_ID}.md"; do
+    [ -f "$path" ] && AUDIT_FOUND=true && break
+  done
+  if [ "$AUDIT_FOUND" = false ]; then
+    echo "❌ BLOCKED: No physical audit found. Complete Gate 1 before committing."
+    exit 1
+  fi
 fi
 
-# Verify plan has approval signature
-if ! grep -q "APPROVED" implementation-plan-${TASK_ID}.md; then
-  echo "❌ BLOCKED: Plan not approved by PM/CEO"
-  echo "Fix: Get approval signature in plan file"
-  exit 1
+# Gate 2: Research audit
+if [ "$TASK_ID" != "unknown" ]; then
+  RESEARCH_FOUND=false
+  for path in \
+    "docs/research/${TASK_ID}-research.md" \
+    "audit-gate-0-${TASK_ID}.log" \
+    "bmn-site/docs/research/${TASK_ID}-research.md" \
+    "bmn-site/audit-gate-0-${TASK_ID}.log"; do
+    [ -f "$path" ] && RESEARCH_FOUND=true && break
+  done
+  if [ "$RESEARCH_FOUND" = false ]; then
+    echo "❌ BLOCKED: No research audit found. Complete Gate 2 before committing."
+    exit 1
+  fi
 fi
 
-# Check build gates
-npm run build || exit 1
-npm run lint || exit 1
-npm run test || exit 1
+# Gate 3: Approved plan
+if [ "$TASK_ID" != "unknown" ]; then
+  PLAN_PATH="implementation-plan-${TASK_ID}.md"
+  [ ! -f "$PLAN_PATH" ] && PLAN_PATH="bmn-site/implementation-plan-${TASK_ID}.md"
+  if [ ! -f "$PLAN_PATH" ]; then
+    echo "❌ BLOCKED: No implementation plan found. Complete Gate 3 before committing."
+    exit 1
+  fi
+  if ! grep -q "APPROVED" "$PLAN_PATH"; then
+    echo "❌ BLOCKED: Plan not approved by PM/CEO. Get sign-off before committing."
+    exit 1
+  fi
+fi
 
-echo "✅ All Ralph gates passed - commit allowed"
+# Build gates
+cd bmn-site 2>/dev/null || true
+npm run build || { echo "❌ BLOCKED: Build failed"; exit 1; }
+npm run lint  || { echo "❌ BLOCKED: Lint failed"; exit 1; }
+npm run test  || { echo "❌ BLOCKED: Tests failed"; exit 1; }
+
+echo "✅ All Ralph gates passed — commit allowed"
 ```
 
 ### CI/CD Pipeline
-- All 12 gates checked on PR
+- All 12 gates checked on every PR to main
 - Security scan runs automatically
 - Merge blocked if any gate fails
+- HMAC proofs verified by CI runner (cannot be forged locally)
 
 ---
 
@@ -355,15 +441,20 @@ echo "✅ All Ralph gates passed - commit allowed"
 
 | Mechanism | Prevents |
 |-----------|----------|
-| Pre-commit hook with fail-safe | Committing without validation |
-| Artifact existence check | Claiming gate complete without files |
-| Security scanner | Shipping P0 vulnerabilities |
-| CI/CD required checks | Merging PRs without all gates |
-| File content hashing | Empty artifact files |
-| Git commit verification | Fake production deploy claims |
+| Node.js runtime check in G0 | Agents without Node.js producing fake static analysis |
+| Pre-dev hook checks G1 + G2 | Starting work without physical audit or research |
+| Pre-commit hook checks G1 + G2 + G3 | Committing without audit, research, or approved plan |
+| Artifact existence + content check | Empty or template files claiming gate complete |
+| 50-line minimum on G1 audit | "Done" in 3 lines to satisfy the check |
+| Security scanner | Shipping P0 vulnerabilities or secrets |
+| CI/CD required status checks | Merging PRs without all gates |
+| HMAC cryptographic proofs | Forged local proof files |
+| Production URL HTTP ping | Fake production verification claims |
+| Screenshot file existence check | Claiming screenshots without taking them |
 
 ---
 
 **Created:** 2026-02-09
+**v7.0:** 2026-02-21
 **Status:** ACTIVE & ENFORCED
-**Escalation:** Any violation = P0 incident report
+**Escalation:** Any bypass attempt = P0 incident report
