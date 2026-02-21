@@ -283,6 +283,41 @@ async function main() {
     console.log(`   ✅ Manual checklist complete (${checklistResult.checked} items signed off)`);
   }
 
+  // --- Check 7b: G3 plan has Success Metric + Failure Signal ---
+  // Without these, there is no definition of "healthy" and operators cannot tell
+  // if the feature is working or broken after it ships.
+  console.log('📊 Checking G3 plan for observability fields (Success Metric + Failure Signal)...');
+  const planCandidates = [
+    path.join(WORKSPACE_ROOT, 'docs', 'implementation', 'plans', `${entryId}-plan.md`),
+    path.join(WORKSPACE_ROOT, `implementation-plan-${entryId}.md`),
+  ];
+  const foundPlanPath = planCandidates.find(p => fs.existsSync(p)) || null;
+
+  if (!foundPlanPath) {
+    violations.push(
+      `G3 implementation plan not found (checked: ${planCandidates.map(p => path.relative(WORKSPACE_ROOT, p)).join(', ')}). ` +
+      'Cannot verify Success Metric and Failure Signal are defined.'
+    );
+  } else {
+    const planContent = fs.readFileSync(foundPlanPath, 'utf-8');
+    if (!/##.*Success\s+Metric/i.test(planContent)) {
+      violations.push(
+        `G3 plan (${path.relative(WORKSPACE_ROOT, foundPlanPath)}) is missing "## Success Metric". ` +
+        'Define the number/signal that proves this feature is working before signing off on production.'
+      );
+    } else {
+      console.log('   ✅ G3 Success Metric defined');
+    }
+    if (!/##.*Failure\s+Signal/i.test(planContent)) {
+      violations.push(
+        `G3 plan (${path.relative(WORKSPACE_ROOT, foundPlanPath)}) is missing "## Failure Signal". ` +
+        'Define the log line/error that indicates this feature is broken before signing off on production.'
+      );
+    } else {
+      console.log('   ✅ G3 Failure Signal defined');
+    }
+  }
+
   // --- Check 8: Report is anchored to git HEAD ---
   console.log('🔐 Checking git HEAD anchor...');
   try {
