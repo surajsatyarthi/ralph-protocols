@@ -164,8 +164,10 @@
         "phase": "EXECUTION",
         "mandatory": true,
         "blocking": true,
-        "description": "Tests must have adequate assertion density (≥3 per test), real integration tests (not all mocked), and no coverage regression.",
-        "enforcement": "analyzes test files for assertion count and mock ratio"
+        "description": "Tests must have adequate assertion density (≥3 per test), real integration tests (not all mocked), no coverage regression. CRITICAL: Every external integration (OAuth, payments, email, DB) must have ≥1 test that is NOT fully mocked. 100% mocked external tests = BLOCKED.",
+        "incident_lesson": "INCIDENT-001: 99 mocked tests all passed. OAuth had client_id=undefined in production. Users got 404 on first click. Mocked tests created false confidence.",
+        "external_integration_rule": "For each external provider (GitHub OAuth, Google OAuth, Stripe, Supabase, Resend, etc.) detected in source code, at least 1 test must verify real configuration — not fully mocked.",
+        "enforcement": "analyzes test files for assertion count, mock ratio, and external integration real test coverage"
       },
       {
         "id": "G7",
@@ -175,8 +177,10 @@
         "phase": "EXECUTION",
         "mandatory": true,
         "blocking": true,
-        "description": "Secrets detection (gitleaks + regex fallback), dependency vulnerability scan (npm audit), OWASP checklist verification.",
-        "enforcement": "blocks on any detected secrets or critical/high CVEs"
+        "description": "Secrets detection (gitleaks + regex fallback), dependency vulnerability scan (npm audit), OWASP checklist verification, ENVIRONMENT VARIABLE PARITY CHECK.",
+        "incident_lesson": "INCIDENT-001: GITHUB_CLIENT_ID was undefined in Vercel. Local .env.local had 132 vars. Production had ~15. Deployment went live with broken OAuth.",
+        "env_parity_rule": "All variables in .env.example matching critical patterns (CLIENT_ID, CLIENT_SECRET, API_KEY, SECRET, DATABASE_URL, AUTH_SECRET, SUPABASE_URL) must be present in the current environment. Missing = BLOCKED.",
+        "enforcement": "blocks on detected secrets, critical/high CVEs, or missing critical environment variables"
       },
       {
         "id": "G8",
@@ -223,17 +227,28 @@
         "phase": "VERIFICATION",
         "mandatory": true,
         "blocking": true,
-        "description": "Production must be live, healthy (HTTP 200), and deployment must match expected git commit. Screenshot evidence required. Monitoring for 24h.",
+        "description": "Production must be live (HTTP 200), verified by a human on mobile AND desktop viewports, with screenshots and a signed manual checklist. HTTP 200 alone is NOT sufficient — a blank page returns 200.",
+        "incident_lesson": "INCIDENT-001: PM approved Gate 8 two minutes after deployment. No one opened the live URL. Core feature was completely broken. This gate requires a human to click through the feature on production before it can pass.",
         "artifacts": ["docs/reports/production-verification-ENTRY_ID.md"],
         "required_sections": [
           "Deployment Timestamp",
           "Deployment ID",
           "Production URL (must return HTTP 200)",
-          "Screenshot evidence path",
+          "Mobile screenshot (375px viewport) — docs/reports/screenshots/[feature]-mobile.png",
+          "Desktop screenshot (1280px viewport) — docs/reports/screenshots/[feature]-desktop.png",
+          "Manual Verification Checklist (human sign-off — ALL items must be [x])",
           "Health check results"
         ],
+        "manual_checklist_required": [
+          "Opened production URL in browser",
+          "Feature renders correctly on mobile viewport (375px)",
+          "Feature renders correctly on desktop viewport (1280px)",
+          "Clicked through the core user flow (not just landing page)",
+          "No console errors observed",
+          "Auth/login flow tested manually (if applicable)"
+        ],
         "monitoring": "hour_0 + hour_6 + hour_24 verification",
-        "enforcement": "HTTP ping of production URL + screenshot file existence check"
+        "enforcement": "HTTP ping + mobile screenshot + desktop screenshot + manual checklist with all items checked"
       },
       {
         "id": "G12",

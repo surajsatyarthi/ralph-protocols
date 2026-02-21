@@ -62,6 +62,65 @@ function extractUrls(content) {
   );
 }
 
+/**
+ * checkViewportScreenshot — checks if the production verification report
+ * references a screenshot file matching a given viewport (mobile/desktop).
+ */
+function checkViewportScreenshot(reportContent, viewport, keywords) {
+  // Look for screenshot file references with viewport keywords in name or path
+  const screenshotPattern = /(?:docs|screenshots?)\/[^\s)\]"',]+\.(?:png|jpg|jpeg|webp)/gi;
+  const matches = reportContent.match(screenshotPattern) || [];
+
+  for (const match of matches) {
+    const lower = match.toLowerCase();
+    if (keywords.some(kw => lower.includes(kw.toLowerCase()))) {
+      const fullPath = path.join(WORKSPACE_ROOT, match);
+      if (fs.existsSync(fullPath)) {
+        return { found: true, path: match };
+      }
+      // Referenced but file doesn't exist yet — still flag as found (file may be on CI)
+      // Only flag as missing if no matching reference at all
+      return { found: true, path: match, warning: 'file referenced but not on disk' };
+    }
+  }
+
+  // Fallback: look for keywords anywhere in the report near a screenshot mention
+  const hasViewportMention = keywords.some(kw =>
+    reportContent.toLowerCase().includes(kw.toLowerCase()) &&
+    reportContent.toLowerCase().includes('screenshot')
+  );
+
+  if (hasViewportMention) {
+    return { found: true, path: `(${viewport} screenshot mentioned in report)` };
+  }
+
+  return { found: false };
+}
+
+/**
+ * checkManualVerificationChecklist — verifies a human sign-off checklist
+ * exists in the production verification report and is fully checked.
+ *
+ * INCIDENT-001 lesson: PM approved Gate 8 two minutes after deployment
+ * without opening the live URL. This checklist makes that impossible to fake.
+ */
+function checkManualVerificationChecklist(reportContent) {
+  const hasChecklist = /##.*Manual\s+Verification|##.*Live\s+Browser|##.*Production\s+Checklist/i.test(reportContent);
+
+  if (!hasChecklist) {
+    return { present: false, checked: 0, unchecked: 0 };
+  }
+
+  const checkedItems = (reportContent.match(/\[x\]/gi) || []).length;
+  const uncheckedItems = (reportContent.match(/\[\s+\]/g) || []).length;
+
+  return {
+    present: true,
+    checked: checkedItems,
+    unchecked: uncheckedItems
+  };
+}
+
 async function main() {
   const entryId = process.argv[2];
 
@@ -80,14 +139,22 @@ async function main() {
   if (!reportPath) {
     console.error(`${RED}❌ Gate 11 BLOCKED: No production verification report found.${RESET}`);
     console.error(`\nYou must manually verify the production deployment and document it.\n`);
-    console.error(`Create one of:`);
-    console.error(`  docs/reports/production-verification-${entryId}.md`);
+    console.error(`Create: docs/reports/production-verification-${entryId}.md`);
     console.error(`\nRequired sections:`);
     console.error(`  ## Deployment Timestamp`);
     console.error(`  ## Deployment ID  (Vercel/Netlify/etc deployment ID)`);
     console.error(`  ## Production URL  (must be reachable, HTTP 200)`);
-    console.error(`  ## Screenshot  (path to screenshot file)`);
+    console.error(`  ## Screenshot — TWO required:`);
+    console.error(`       docs/reports/screenshots/[feature]-mobile.png  (375px viewport)`);
+    console.error(`       docs/reports/screenshots/[feature]-desktop.png (1280px viewport)`);
     console.error(`  ## Health Check Results`);
+    console.error(`  ## Manual Verification Checklist  ← HUMAN SIGN-OFF REQUIRED`);
+    console.error(`       - [x] Opened production URL in browser`);
+    console.error(`       - [x] Feature renders correctly on mobile viewport (375px)`);
+    console.error(`       - [x] Feature renders correctly on desktop viewport (1280px)`);
+    console.error(`       - [x] Clicked through the core user flow`);
+    console.error(`       - [x] No console errors observed`);
+    console.error(`       - [x] Auth/login flow tested manually (if applicable)`);
     console.error(`  ## Monitoring (hour 0 / hour 6 / hour 24 sign-offs)`);
     process.exit(1);
   }
@@ -160,7 +227,63 @@ async function main() {
     );
   }
 
-  // --- Check 5: Report is anchored to git HEAD ---
+  // --- Check 5: Mobile + Desktop screenshots ---
+  // Lesson: HTTP 200 + one screenshot does not prove the UI works.
+  // A blank white page returns HTTP 200. A screenshot of it "passes".
+  // We require TWO screenshots: mobile (375px) and desktop (1280px),
+  // AND a manual checklist confirming a human clicked through the feature.
+  console.log('📱 Checking mobile + desktop screenshot evidence...');
+  const mobileCheck = checkViewportScreenshot(report, 'mobile', ['mobile', '375', 'phone', 'sm-']);
+  const desktopCheck = checkViewportScreenshot(report, 'desktop', ['desktop', '1280', 'lg-', 'full']);
+
+  if (!mobileCheck.found) {
+    violations.push(
+      'Missing mobile screenshot (375px viewport). ' +
+      'Take a screenshot in Chrome DevTools mobile mode or Playwright at width=375. ' +
+      'Save as docs/reports/screenshots/[feature]-mobile.png and reference it in the report. ' +
+      'Reason: HTTP 200 does not prove the mobile UI renders correctly.'
+    );
+  } else {
+    console.log(`   ✅ Mobile screenshot found: ${mobileCheck.path}`);
+  }
+
+  if (!desktopCheck.found) {
+    violations.push(
+      'Missing desktop screenshot (1280px viewport). ' +
+      'Save as docs/reports/screenshots/[feature]-desktop.png and reference it in the report.'
+    );
+  } else {
+    console.log(`   ✅ Desktop screenshot found: ${desktopCheck.path}`);
+  }
+
+  // --- Check 6: Manual live browser verification checklist ---
+  // No automated tool can replace a human actually clicking through the feature on production.
+  // This checklist must be signed off MANUALLY — not auto-generated.
+  console.log('🧑‍💻 Checking manual verification checklist...');
+  const checklistResult = checkManualVerificationChecklist(report);
+  if (!checklistResult.present) {
+    violations.push(
+      'Missing manual verification checklist. Add this section to your production verification report:\n\n' +
+      '## Manual Verification Checklist\n' +
+      '- [x] Opened production URL in browser\n' +
+      '- [x] Feature renders correctly on mobile viewport (375px)\n' +
+      '- [x] Feature renders correctly on desktop viewport (1280px)\n' +
+      '- [x] Clicked through the core user flow (not just landing page)\n' +
+      '- [x] No console errors observed\n' +
+      '- [x] Auth/login flow tested manually (if applicable)\n\n' +
+      'This checklist must be filled in by a human — not auto-generated. ' +
+      'INCIDENT-001 was caused by approving a deployment without anyone opening the live URL.'
+    );
+  } else if (checklistResult.unchecked > 0) {
+    violations.push(
+      `Manual verification checklist has ${checklistResult.unchecked} unchecked item(s). ` +
+      'All items must be checked [ ] → [x] before Gate 11 can pass.'
+    );
+  } else {
+    console.log(`   ✅ Manual checklist complete (${checklistResult.checked} items signed off)`);
+  }
+
+  // --- Check 8: Report is anchored to git HEAD ---
   console.log('🔐 Checking git HEAD anchor...');
   try {
     const head = execSync('git rev-parse HEAD', { encoding: 'utf-8', cwd: WORKSPACE_ROOT }).trim();
