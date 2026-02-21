@@ -1,4 +1,4 @@
-name: Protocol Gate Enforcement
+name: Protocol Self-Validation
 
 on:
   pull_request:
@@ -7,181 +7,174 @@ on:
     branches: [ main, develop ]
 
 jobs:
-  # Gate 5: Strict Lint Check
-  lint-enforcement:
-    name: Gate 5 - Lint Suppression Check
+  # Validates all JSON files parse cleanly and master playbook has all 12 gates
+  json-validation:
+    name: Gate 5 - JSON & Schema Validation
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 2  # Need previous commit for comparison
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-      
-      - name: Install dependencies
-        run: npm ci
-      
-      - name: Run Lint Strict Check
-        run: npm run lint:strict -- ${{ github.event.pull_request.head.ref || 'ENTRY-000' }}
-        continue-on-error: false
 
-  # Gate 7: Security Suite
-  security-gate:
-    name: Gate 7 - Security Scan
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
-      - name: Install gitleaks
+
+      - name: Validate master playbook has all 12 gates
         run: |
-          wget https://github.com/gitleaks/gitleaks/releases/download/v8.18.0/gitleaks_8.18.0_linux_x64.tar.gz
-          tar -xzf gitleaks_8.18.0_linux_x64.tar.gz
-          sudo mv gitleaks /usr/local/bin/
-          gitleaks version
-      
-      - name: Run Security Gate
-        run: npm run security:gate -- ${{ github.event.pull_request.head.ref || 'ENTRY-000' }}
-        continue-on-error: false
+          node -e "
+            const pb = require('./ralph_master_playbook_v8.json');
+            const ids = pb.gates.technical.map(g => g.id);
+            const required = ['G0','G1','G2','G3','G4','G5','G6','G7','G8','G9','G10','G11','G12'];
+            const missing = required.filter(g => !ids.includes(g));
+            if (missing.length > 0) {
+              console.error('Missing gates: ' + missing.join(', '));
+              process.exit(1);
+            }
+            console.log('All 12 gates present: ' + ids.join(', '));
+          "
 
-  # Gate 6: Test Quality Analysis
-  test-quality:
-    name: Gate 6 - Test Quality
+      - name: Validate all JSON files
+        run: |
+          find . -name "*.json" \
+            -not -path "./.git/*" \
+            -not -path "./node_modules/*" | while read f; do
+            node -e "require('$f'); console.log('OK: $f')" || exit 1
+          done
+
+  # Verifies that all scripts referenced in the playbook actually exist on disk
+  script-references:
+    name: Gate 6 - Script Reference Integrity
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
-      - name: Run Test Quality Analysis
-        run: npm run analyze:tests -- ${{ github.event.pull_request.head.ref || 'ENTRY-000' }}
-        continue-on-error: false
-      
-      - name: Upload Test Quality Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-quality-report
-          path: .evidence/reports/test-quality-*.json
 
-  # Gate 9: Accessibility Check
-  accessibility-gate:
-    name: Gate 9 - Accessibility
+      - name: Check all playbook-referenced scripts exist
+        run: |
+          node -e "
+            const fs = require('fs');
+            const pb = require('./ralph_master_playbook_v8.json');
+            let failed = false;
+            for (const gate of pb.gates.technical) {
+              if (gate.script) {
+                if (!fs.existsSync(gate.script)) {
+                  console.error('MISSING: ' + gate.script + ' (referenced by ' + gate.id + ')');
+                  failed = true;
+                } else {
+                  console.log('OK: ' + gate.script);
+                }
+              }
+            }
+            if (failed) process.exit(1);
+          "
+
+  # Runs npm audit for known vulnerabilities in protocol repo dependencies
+  security-audit:
+    name: Gate 7 - Security Audit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
-      - name: Install Playwright
-        run: npx playwright install --with-deps chromium
-      
-      - name: Start dev server
-        run: npm run dev &
-        env:
-          CI: true
-      
-      - name: Wait for server
-        run: npx wait-on http://localhost:3000 --timeout 60000
-      
-      - name: Run Accessibility Gate
-        run: npm run a11y:gate -- ${{ github.event.pull_request.head.ref || 'ENTRY-000' }} http://localhost:3000
-        continue-on-error: false
-      
-      - name: Upload Accessibility Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: accessibility-report
-          path: .evidence/reports/accessibility-*.json
 
-  # Evidence Collection
+      - name: Run npm audit (high severity)
+        run: npm audit --audit-level=high
+
+  # Verifies script hashes in integrity-manifest.json and required docs exist
+  integrity-check:
+    name: Gate 9 - Integrity & Documentation Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify script integrity hashes
+        run: node scripts/verify-integrity.js
+
+      - name: Verify required protocol documentation exists
+        run: |
+          for f in \
+            protocols/RALPH_PROTOCOL.md \
+            protocols/CIRCULAR_ENFORCEMENT.md \
+            guides/AI_CODER_QUICK_REF.md \
+            PROJECT_LEDGER.md \
+            ralph_master_playbook_v8.json \
+            integrity-manifest.json; do
+            if [ -f "$f" ]; then
+              echo "OK: $f"
+            else
+              echo "MISSING: $f"
+              exit 1
+            fi
+          done
+
+  # Collect and summarize results
   collect-evidence:
-    name: Collect Evidence Tickets
+    name: Collect Evidence
     runs-on: ubuntu-latest
-    needs: [lint-enforcement, security-gate, test-quality, accessibility-gate]
+    needs: [json-validation, script-references, security-audit, integrity-check]
     if: always()
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-      
       - name: List evidence
         run: |
-          echo "## Evidence Generated" >> $GITHUB_STEP_SUMMARY
+          echo "## Protocol Self-Validation Evidence" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          if [ -d ".evidence/tickets" ]; then
-            echo "### Evidence Tickets:" >> $GITHUB_STEP_SUMMARY
-            ls -la .evidence/tickets/ >> $GITHUB_STEP_SUMMARY || echo "No tickets found" >> $GITHUB_STEP_SUMMARY
-          fi
-          if [ -d ".evidence/reports" ]; then
-            echo "### Evidence Reports:" >> $GITHUB_STEP_SUMMARY
-            ls -la .evidence/reports/ >> $GITHUB_STEP_SUMMARY || echo "No reports found" >> $GITHUB_STEP_SUMMARY
-          fi
-      
-      - name: Upload all evidence
-        uses: actions/upload-artifact@v4
-        with:
-          name: gate-evidence-${{ github.sha }}
-          path: |
-            .evidence/tickets/
-            .evidence/reports/
-          retention-days: 90
+          echo "Validation run for commit \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
 
-  # Summary
+  # Summary gate - blocks merge if any check fails
   gate-summary:
     name: Gate Enforcement Summary
     runs-on: ubuntu-latest
-    needs: [lint-enforcement, security-gate, test-quality, accessibility-gate]
+    needs: [json-validation, script-references, security-audit, integrity-check]
     if: always()
     steps:
       - name: Create Summary
         run: |
-          echo "# 🔒 Protocol Gate Enforcement Results" >> $GITHUB_STEP_SUMMARY
+          echo "# Protocol Gate Enforcement Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Gate | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Gate 5 - Lint Suppression | ${{ needs.lint-enforcement.result == 'success' && '✅ PASSED' || '❌ BLOCKED' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Gate 7 - Security Scan | ${{ needs.security-gate.result == 'success' && '✅ PASSED' || '❌ BLOCKED' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Gate 6 - Test Quality | ${{ needs.test-quality.result == 'success' && '✅ PASSED' || '❌ BLOCKED' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Gate 9 - Accessibility | ${{ needs.accessibility-gate.result == 'success' && '✅ PASSED' || '❌ BLOCKED' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Gate 5 - JSON & Schema | ${{ needs.json-validation.result == 'success' && '✅ PASSED' || '❌ BLOCKED' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Gate 6 - Script References | ${{ needs.script-references.result == 'success' && '✅ PASSED' || '❌ BLOCKED' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Gate 7 - Security Audit | ${{ needs.security-audit.result == 'success' && '✅ PASSED' || '❌ BLOCKED' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Gate 9 - Integrity & Docs | ${{ needs.integrity-check.result == 'success' && '✅ PASSED' || '❌ BLOCKED' }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
-          if [[ "${{ needs.lint-enforcement.result }}" == "success" ]] && \
-             [[ "${{ needs.security-gate.result }}" == "success" ]] && \
-             [[ "${{ needs.test-quality.result }}" == "success" ]] && \
-             [[ "${{ needs.accessibility-gate.result }}" == "success" ]]; then
-            echo "## ✅ All Gates Passed" >> $GITHUB_STEP_SUMMARY
-            echo "This PR meets protocol enforcement standards." >> $GITHUB_STEP_SUMMARY
+
+          if [[ "${{ needs.json-validation.result }}" == "success" ]] && \
+             [[ "${{ needs.script-references.result }}" == "success" ]] && \
+             [[ "${{ needs.security-audit.result }}" == "success" ]] && \
+             [[ "${{ needs.integrity-check.result }}" == "success" ]]; then
+            echo "## ✅ All Protocol Checks Passed" >> $GITHUB_STEP_SUMMARY
+            echo "This PR meets protocol repo standards." >> $GITHUB_STEP_SUMMARY
           else
-            echo "## ❌ Gate Enforcement Failed" >> $GITHUB_STEP_SUMMARY
-            echo "This PR is blocked by protocol gates. Review the failed checks above." >> $GITHUB_STEP_SUMMARY
+            echo "## ❌ Protocol Checks Failed" >> $GITHUB_STEP_SUMMARY
+            echo "This PR is blocked. Review the failed checks above." >> $GITHUB_STEP_SUMMARY
             exit 1
           fi

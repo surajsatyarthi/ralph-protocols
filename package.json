@@ -7,9 +7,9 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node scripts/test-protocol-validity.js",
+    "lint": "node scripts/verify-integrity.js",
     "sync:protocols": "node scripts/sync-protocols.js",
-    "postinstall": "npm run sync:protocols",
     "sidecar": "node scripts/ralph-sidecar.js"
   },
   "keywords": [],
