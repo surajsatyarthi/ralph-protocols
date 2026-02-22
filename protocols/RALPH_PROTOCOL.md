@@ -90,8 +90,8 @@ PM writes the tier into the PROJECT_LEDGER.md task entry before AI Coder starts 
 **Enforced by:** GitHub Actions on every PR. Branch protection blocks merge if CI fails.
 
 ```
-npm run build       — zero errors
-npm run lint        — zero warnings
+pnpm run build      — zero errors
+pnpm run lint       — zero warnings
 npx tsc --noEmit    — zero TypeScript errors
 ```
 
@@ -205,7 +205,7 @@ Tests are required for:
 
 Required for Tier L only because Tier L is where new external integrations and auth paths are introduced.
 
-1. `npm audit` — no critical or high CVEs
+1. `pnpm audit` — no critical or high CVEs
 2. No secrets or API keys in source code (CI scans for this)
 3. All new env vars added to `.env.example` with placeholder values
 4. All new env vars confirmed present in Vercel/production environment
@@ -318,7 +318,7 @@ These run as scheduled tasks, not on every PR:
 
 - **Accessibility audit (axe)** — quarterly, PM-scheduled
 - **Lighthouse performance audit** — monthly, PM-scheduled
-- **Full npm audit** — monthly in CI as non-blocking, blocking for Tier L
+- **Full pnpm audit** — monthly in CI as non-blocking, blocking for Tier L
 
 ---
 
