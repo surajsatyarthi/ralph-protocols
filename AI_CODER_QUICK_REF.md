@@ -1,10 +1,17 @@
-# AI Coder Quick Reference — Ralph Protocol v15.0
+# AI Coder Quick Reference — Ralph Protocol v16.1
 
 **Read-only. Written by PM. Do not modify.**
 
 ---
 
 ## BEFORE YOU START ANY TASK
+
+**Step 0 — Branch hygiene (do this before anything else):**
+```bash
+git fetch origin
+git checkout -b feat/ENTRY-X origin/main
+```
+Never continue on an existing branch that already has old merged work on it. Always branch from current `origin/main`. Confirm with `git rev-parse origin/main` — record this SHA. You will need it for the PR.
 
 Check the PROJECT_LEDGER.md entry for your task. It must have:
 - `**Tier:** S / M / L` — set by PM
@@ -25,7 +32,10 @@ If the tier is not set: post in PROJECT_LEDGER.md and wait. Do not start work.
 [ ] G5 — Zero eslint-disable / @ts-ignore in your changes
 [ ] G13 — Browser walkthrough on VERCEL PREVIEW URL (not localhost)
          File: docs/reports/browser-test-ENTRY-XXX.md
-[ ] G14 — Code Review Summary in PR body. Wait for PM "APPROVED" comment.
+[ ] G14 — Code Review Summary in PR body including:
+         CI Run: <GitHub Actions run URL> ✅ passed
+         Branch base: branched from `main` at SHA <sha>
+         Wait for PM "APPROVED" comment.
 [ ] G11 — After merge: production URL HTTP 200, screenshots confirming feature works
 ```
 
@@ -43,7 +53,10 @@ If the tier is not set: post in PROJECT_LEDGER.md and wait. Do not start work.
 [ ] G6 — Tests for new logic/routes/interactions (no 100% mocked externals)
 [ ] G13 — Browser walkthrough on VERCEL PREVIEW URL
          File: docs/reports/browser-test-ENTRY-XXX.md
-[ ] G14 — Code Review Summary in PR body. Wait for PM "APPROVED" comment.
+[ ] G14 — Code Review Summary in PR body including:
+         CI Run: <GitHub Actions run URL> ✅ passed
+         Branch base: branched from `main` at SHA <sha>
+         Wait for PM "APPROVED" comment.
 [ ] G11 — After merge: production verification + G3 Success Metric confirmed
          File: docs/reports/production-verification-ENTRY-XXX.md
 [ ] G12 — Walkthrough doc: docs/walkthroughs/walkthrough-ENTRY-XXX.md
@@ -75,8 +88,8 @@ INCIDENT-002 happened because this was skipped. Don't repeat it.
 **G14 requires PM "APPROVED" comment. You cannot merge your own PR.**
 Branch protection enforces this mechanically. There is no workaround.
 
-**CI must pass before G14 review.**
-If CI is failing, fix it before asking for PM review. PM will not APPROVE a red CI.
+**CI run URL is required in the PR body.**
+Include `CI Run: <URL> ✅ passed` and `Branch base: SHA <sha>` in your Code Review Summary. PM will not open the code review without it. If CI hasn't triggered, wait. If it failed, fix it first.
 
 ---
 
@@ -105,4 +118,4 @@ Post in PROJECT_LEDGER.md. Wait for PM direction. Do not improvise.
 
 ---
 
-**v15.0 — 2026-02-22 — Owner: PM (Claude)**
+**v16.1 — 2026-02-25 — Owner: PM (Claude)**
