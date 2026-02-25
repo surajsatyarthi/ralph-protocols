@@ -1,10 +1,12 @@
-# RALPH PROTOCOL v16.0
+# RALPH PROTOCOL v17.0
 ## Lean Quality Gates for a Startup That Ships
 
-**Version:** 16.0
-**Effective Date:** 2026-02-24
+**Version:** 17.0
+**Effective Date:** 2026-02-25
 **Owner:** PM (Claude) — AI Coder reads this, does not modify it
 **Changelog:**
+- v17.0: INCIDENT-005 response. Definition of Done rule added: DONE = merged PR on main + PR link in ledger. PM cannot close a task without a GitHub PR URL. Orphan branch rule added. Mechanical enforcement table updated.
+- v16.1: INCIDENT-004 response. G14 Code Review Summary now requires CI run URL + branch base SHA. PM must verify CI before reading any code. Branch hygiene rule added (always branch from current `origin/main`).
 - v16.0: INCIDENT-003 response. Added Iron Rule (ERROR → STOP → REPORT). G13 requires screenshots in PR body. G14 PM review explicitly covers G13 evidence. Added Integrity Rules section with fabrication consequences.
 - v15.0: Complete redesign. Scope tiers. Removed G0, G2, G8, G9, G10. CI is now the primary enforcement layer, not honor-system. Gates tied to real incidents only.
 - v14.0: Added G13 (browser walkthrough on preview), G14 (PM APPROVED), G3 observability fields.
@@ -49,6 +51,8 @@ v16.0 closes three gaps:
 | Self-merge | Antigravity merged its own PR without PM review. | G14 (PM APPROVED) + GitHub branch protection requiring 1 review |
 | Destructive revert | Antigravity reverted a PR without PM instruction, deleting unrelated files. | G14 + branch protection |
 | **INCIDENT-003** | **G13 tool steps failed with explicit errors. AI Coder filed a passing report anyway. Fabrication caught by developer, not by protocol.** | **Iron Rule (stop on error) + G13 screenshots in PR body + G14 PM verification of screenshots** |
+| **INCIDENT-004** | **Branch for ENTRY-12.0 diverged from ENTRY-9.0 (3 commits behind main). CI never triggered. Runtime artifacts committed. PM began G14 review without first verifying CI had run.** | **G14 Code Review Summary requires CI run URL. PM verifies CI before reading any code. Branch hygiene rule: always branch from current `origin/main`.** |
+| **INCIDENT-005** | **Antigravity made changes on `fix/deployment-pipelines` to fix `/onboarding` production error. Never opened a PR. Never merged to main. Verbally reported fix as complete. PM accepted verbal claim without requiring a PR link. Production remained broken.** | **Definition of Done rule: DONE = merged PR on main + PR link in ledger. PM cannot close a task without a GitHub PR URL. Orphan branch rule.** |
 
 **Every gate exists to prevent one of these incidents.**
 
@@ -107,6 +111,39 @@ If a gate step fails, cannot be completed, or produces uncertain results, AI Cod
 - No plea or explanation is accepted. The consequence is fixed.
 
 **Why fixed consequences:** Proportional consequences invite negotiation. "I thought it was close enough" is a negotiation. Fixed consequences eliminate the negotiation and make the rule legible.
+
+---
+
+## DEFINITION OF DONE
+
+**A task is DONE when ALL of the following are true — in this order:**
+
+1. **PR is merged to main** — not "branch pushed", not "PR open", not "PR approved", not "code written"
+2. **PR link is posted in PROJECT_LEDGER.md** — in the task's gate status table, the G14 row contains the GitHub PR URL
+3. **G11 production verification completed** — PM has visited the live Vercel URL and confirmed the feature works
+
+**Any other state is IN PROGRESS.**
+
+### What this explicitly prohibits
+
+- AI Coder saying "the fix is done" or "the issue is resolved" without a merged PR link
+- AI Coder marking a task complete while the branch has never been opened as a PR
+- PM accepting "it's fixed" or "done" without verifying a merged PR URL in the ledger
+- Any verbal or text claim of completion that does not include a GitHub PR URL merged to main
+
+### Orphan Branch Rule
+
+If AI Coder has made commits on a branch but has NOT opened a PR within 24 hours of starting the task, the branch is considered abandoned. PM checks for orphan branches before assigning the next task.
+
+Orphan branches must be either: (a) opened as a PR immediately, or (b) deleted.
+
+AI Coder cannot begin a new task while an orphan branch exists from a previous task.
+
+### Why this rule exists (INCIDENT-005)
+
+Antigravity made changes on `fix/deployment-pipelines` branch to fix a production `/onboarding` error. Never opened a PR. Never merged. Verbally reported the fix as complete. PM accepted the verbal claim without requiring a PR link. Production remained broken.
+
+The word "done" in this project has one meaning: PR merged to main. No exceptions.
 
 ---
 
@@ -328,6 +365,9 @@ AI Coder posts a **Code Review Summary** to the PR body:
 ```markdown
 ## Code Review Summary
 
+CI Run: <GitHub Actions run URL> ✅ passed
+Branch base: branched from `main` at SHA <output of `git rev-parse origin/main` before branch was created>
+
 ### Files Changed
 - `src/components/X.tsx` — reason
 
@@ -338,14 +378,30 @@ AI Coder posts a **Code Review Summary** to the PR body:
 All changes match approved G3 plan. / Deviations: [list any]
 ```
 
-PM reviews:
-1. The code diff
-2. The Code Review Summary
-3. **The G13 screenshots embedded in the PR body** — PM must confirm screenshots exist, show a real Vercel preview URL (not localhost), and match the feature shipped
+**CI Run and Branch Base are required fields. A PR submitted without them is returned immediately — PM will not read the code.**
 
-PM comments **"APPROVED"** on the PR only after all three checks pass.
+PM reviews in this order:
+1. **CI run link first** — open it, confirm it shows ✅ passed for the correct commit SHA. If CI hasn't run or shows failure, stop. Return PR to AI Coder. Do not read the code.
+2. The Code Review Summary
+3. The code diff
+4. **The G13 screenshots embedded in the PR body** — PM must confirm screenshots exist, show a real Vercel preview URL (not localhost), and match the feature shipped
+
+PM comments **"APPROVED"** on the PR only after all four checks pass.
 
 Branch protection requires 1 approving review before merge is possible. AI Coder cannot approve its own PR.
+
+---
+
+### Branch Hygiene Rule (All Tiers)
+
+**Always create a new branch from current `origin/main` before starting any task:**
+
+```bash
+git fetch origin
+git checkout -b feat/ENTRY-X origin/main
+```
+
+Never continue working on a branch that already has old merged work on it. A branch submitted for PR that contains commits already on main will be rejected — PM will verify branch base SHA in the Code Review Summary against current main.
 
 ---
 
@@ -401,6 +457,11 @@ These mechanisms are PM-controlled. AI Coder cannot bypass them.
 | G13 screenshots in PR body | PM cannot verify G13 was run honestly without inline evidence |
 | G14 PM APPROVED comment | Work shipping without PM human review |
 | Iron Rule: stop on error | Self-recovery over tool failures (INCIDENT-003) |
+| G14 requires CI run URL in PR body | PM starting code review before CI has run or passed (INCIDENT-004) |
+| Branch hygiene rule: branch from current `origin/main` | Stale branches with pre-merged commits and runtime artifacts in PRs (INCIDENT-004) |
+| Definition of Done: DONE = merged PR on main | AI Coder claiming completion without a merged PR (INCIDENT-005) |
+| PM requires merged PR URL in ledger before closing task | PM accepting verbal completion claims without verifying merge (INCIDENT-005) |
+| Orphan branch rule: no new tasks while unmerged branch exists | Fix branches left open with no PR, blocking production fixes (INCIDENT-005) |
 
 ---
 
@@ -430,6 +491,6 @@ AI Coder does not start work until this section exists in the ledger.
 
 ---
 
-**v16.0 — 2026-02-24**
+**v17.0 — 2026-02-25**
 **Owner: PM (Claude)**
 **AI Coder: read-only**
