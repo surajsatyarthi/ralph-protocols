@@ -323,6 +323,29 @@ AI Coder reports G7 results in the PR description.
 
 Localhost has local `.env.local` that differs from what Vercel deploys. Preview uses the exact same environment as production. This is the only way to catch missing env vars before merge.
 
+#### Accessing Authenticated Pages on Preview (Auth Bypass)
+
+The Preview environment has `NEXT_PUBLIC_TEST_MODE=true` set. This enables the test auth bypass in middleware.
+
+**Do NOT use the login form for G13.** The login form calls the Supabase auth API directly from the browser — Next.js middleware cannot intercept or bypass that call. Using the login form requires a real Supabase account with confirmed email.
+
+**Instead, navigate directly to the page under test** with the bypass header:
+
+```
+Request Header: x-test-auth-bypass: true
+```
+
+In Playwright (the standard tool):
+```typescript
+await page.setExtraHTTPHeaders({ 'x-test-auth-bypass': 'true' });
+await page.goto('https://bmn-site-git-BRANCH-HASH.vercel.app/dashboard');
+// Middleware detects header → authenticates as mock user → page renders
+```
+
+The mock user (id: `d2d4586e-9646-4b16-b363-c301ada79540`, email: `mock_bypass@bmn.com`) is pre-authenticated with a confirmed email. The middleware redirects `/login` to `/onboarding` automatically when the bypass header is present.
+
+**If the page still redirects to /login despite the header:** Stop. Report to PM. The `NEXT_PUBLIC_TEST_MODE` env var may not have been picked up by the current deployment — PM will trigger a redeploy.
+
 **Iron Rule applies here without exception.** If any browser tool step (screenshot, resize, console capture) returns an error:
 - Stop immediately.
 - Do NOT file any G13 report.
