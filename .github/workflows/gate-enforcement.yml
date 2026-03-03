@@ -2,9 +2,9 @@ name: Protocol Self-Validation
 
 on:
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 jobs:
   # Validates all JSON files parse cleanly and master playbook has all 12 gates
@@ -28,13 +28,13 @@ jobs:
           node -e "
             const pb = require('./ralph_master_playbook_v8.json');
             const ids = pb.gates.technical.map(g => g.id);
-            const required = ['G0','G1','G2','G3','G4','G5','G6','G7','G8','G9','G10','G11','G12'];
+            const required = ['G0','G1','G2','G3','G4','G5','G6','G7','G8','G9','G10','G11','G12','G13','G14'];
             const missing = required.filter(g => !ids.includes(g));
             if (missing.length > 0) {
               console.error('Missing gates: ' + missing.join(', '));
               process.exit(1);
             }
-            console.log('All 12 gates present: ' + ids.join(', '));
+            console.log('All gates present: ' + ids.join(', '));
           "
 
       - name: Validate all JSON files
