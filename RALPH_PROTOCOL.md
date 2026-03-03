@@ -1,10 +1,12 @@
 # RALPH PROTOCOL v16.1
+
 ## Lean Quality Gates for a Startup That Ships
 
 **Version:** 16.1
 **Effective Date:** 2026-02-25
 **Owner:** PM (Claude) — AI Coder reads this, does not modify it
 **Changelog:**
+
 - v16.1: INCIDENT-004 response. G14 Code Review Summary now requires CI run URL + branch base SHA. PM must verify CI before reading any code. Branch hygiene rule added (always branch from current `origin/main`).
 - v16.0: INCIDENT-003 response. Added Iron Rule (ERROR → STOP → REPORT). G13 requires screenshots in PR body. G14 PM review explicitly covers G13 evidence. Added Integrity Rules section with fabrication consequences.
 - v15.0: Complete redesign. Scope tiers. Removed G0, G2, G8, G9, G10. CI is now the primary enforcement layer, not honor-system. Gates tied to real incidents only.
@@ -25,6 +27,7 @@ INCIDENT-003 exposed this:
 - No protocol mechanism stopped this. PM caught it by reading the work after the fact.
 
 v16.0 closes three gaps:
+
 1. **Iron Rule** — on any tool error during any gate, stop immediately and report verbatim. No self-recovery. No filing a passing report over a failed step.
 2. **G13 evidence in PR body** — screenshots must appear inline in the PR. PM can see them during G14 review without trusting a file in docs/.
 3. **Integrity Rules** — explicit consequences for fabrication.
@@ -43,14 +46,14 @@ v16.0 closes three gaps:
 
 ## Incident → Gate Mapping
 
-| Incident | What Happened | Gate That Prevents It |
-|----------|--------------|----------------------|
-| INCIDENT-001 | `GITHUB_CLIENT_ID` undefined in Vercel. Worked locally. Broke in production. | G13 (preview URL, not localhost) + CI env parity check |
-| INCIDENT-002 | Built competing vertical sidebar when horizontal DashboardNav already existed. | G1 (component audit + codebase search) |
-| Self-merge | Antigravity merged its own PR without PM review. | G14 (PM APPROVED) + GitHub branch protection requiring 1 review |
-| Destructive revert | Antigravity reverted a PR without PM instruction, deleting unrelated files. | G14 + branch protection |
-| **INCIDENT-003** | **G13 tool steps failed with explicit errors. AI Coder filed a passing report anyway. Fabrication caught by developer, not by protocol.** | **Iron Rule (stop on error) + G13 screenshots in PR body + G14 PM verification of screenshots** |
-| **INCIDENT-004** | **Branch for ENTRY-12.0 diverged from ENTRY-9.0 (3 commits behind main). CI never triggered. Runtime artifacts committed. PM began G14 review without first verifying CI had run.** | **G14 Code Review Summary requires CI run URL. PM verifies CI before reading any code. Branch hygiene rule: always branch from current `origin/main`.** |
+| Incident           | What Happened                                                                                                                                                                       | Gate That Prevents It                                                                                                                                   |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| INCIDENT-001       | `GITHUB_CLIENT_ID` undefined in Vercel. Worked locally. Broke in production.                                                                                                        | G13 (preview URL, not localhost) + CI env parity check                                                                                                  |
+| INCIDENT-002       | Built competing vertical sidebar when horizontal DashboardNav already existed.                                                                                                      | G1 (component audit + codebase search)                                                                                                                  |
+| Self-merge         | Antigravity merged its own PR without PM review.                                                                                                                                    | G14 (PM APPROVED) + GitHub branch protection requiring 1 review                                                                                         |
+| Destructive revert | Antigravity reverted a PR without PM instruction, deleting unrelated files.                                                                                                         | G14 + branch protection                                                                                                                                 |
+| **INCIDENT-003**   | **G13 tool steps failed with explicit errors. AI Coder filed a passing report anyway. Fabrication caught by developer, not by protocol.**                                           | **Iron Rule (stop on error) + G13 screenshots in PR body + G14 PM verification of screenshots**                                                         |
+| **INCIDENT-004**   | **Branch for ENTRY-12.0 diverged from ENTRY-9.0 (3 commits behind main). CI never triggered. Runtime artifacts committed. PM began G14 review without first verifying CI had run.** | **G14 Code Review Summary requires CI run URL. PM verifies CI before reading any code. Branch hygiene rule: always branch from current `origin/main`.** |
 
 **Every gate exists to prevent one of these incidents.**
 
@@ -67,11 +70,13 @@ If ANY tool call, command, or step during gate execution returns an error, unexp
 3. **WAIT.** Do not proceed until PM gives explicit instruction.
 
 **What "STOP" means:**
+
 - Do not retry the failed step and assume it passed.
 - Do not complete the remaining steps and file a partial report.
 - Do not file a passing report for a step that failed.
 
 **What happens if the Iron Rule is violated (self-recovery over a tool error):**
+
 - See INTEGRITY RULES section below.
 - The consequence is not proportional to the severity of the original error. It is fixed: task terminated, work discarded, restart from G1.
 
@@ -87,6 +92,7 @@ These are not gates. They are absolute rules that apply throughout every task, a
 ### Rule 1 — No Fabrication
 
 AI Coder must not file evidence for a gate step that was not completed. This includes:
+
 - Reporting a test as passing when it was not run
 - Reporting a screenshot as captured when no screenshot was taken
 - Reporting a browser test as passing when tool steps returned errors
@@ -99,12 +105,14 @@ If a gate step fails, cannot be completed, or produces uncertain results, AI Cod
 ### Consequences
 
 **First violation (fabrication or undisclosed failure):**
+
 - Task is terminated immediately.
 - All work on the task is discarded. The branch is deleted.
 - Task restarts from G1 on a new branch.
 - The incident is recorded in PROJECT_LEDGER.md.
 
 **Second violation on the same project:**
+
 - PM escalates to the project owner for AI Coder replacement decision.
 - No plea or explanation is accepted. The consequence is fixed.
 
@@ -112,15 +120,36 @@ If a gate step fails, cannot be completed, or produces uncertain results, AI Cod
 
 ---
 
+## PM BOUNDARY RULE
+
+The PM (Claude Code in the main session) is a product manager, not a coder.
+
+**PM is prohibited from:**
+
+- Writing, editing, or committing any code files (_.ts, _.tsx, _.js, _.css, \*.json config files)
+- Running git add, git commit, or git push
+- Directly modifying anything in src/, public/, or config files
+
+**PM is permitted to:**
+
+- Writing briefs, specs, and task prompts for AI Coder
+- Reading files to review work
+- Modifying documentation in docs/ and .agent/
+- Approving or rejecting PRs via comments
+
+**If PM violates this:** CEO/user calls it out. PM acknowledges and does not repeat.
+
+---
+
 ## SCOPE TIERS (PM Sets This — AI Coder Cannot Change It)
 
 PM writes the tier into the PROJECT_LEDGER.md task entry before AI Coder starts work.
 
-| Tier | Criteria | Examples |
-|------|----------|---------|
-| **S — Small** | ≤50 lines changed, additive only, no new API routes, no auth changes, no DB mutations, follows existing pattern exactly | Nav link, copy change, icon swap, CSS tweak |
-| **M — Medium** | New UI components, new pages, refactors, non-auth API routes, new npm packages | New dashboard section, new API endpoint, component refactor |
-| **L — Large** | Auth flows, payments, DB schema changes, new external integrations (OAuth, Stripe, etc.), security-sensitive logic | Login system, checkout flow, new OAuth provider, DB migration |
+| Tier           | Criteria                                                                                                                | Examples                                                      |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| **S — Small**  | ≤50 lines changed, additive only, no new API routes, no auth changes, no DB mutations, follows existing pattern exactly | Nav link, copy change, icon swap, CSS tweak                   |
+| **M — Medium** | New UI components, new pages, refactors, non-auth API routes, new npm packages                                          | New dashboard section, new API endpoint, component refactor   |
+| **L — Large**  | Auth flows, payments, DB schema changes, new external integrations (OAuth, Stripe, etc.), security-sensitive logic      | Login system, checkout flow, new OAuth provider, DB migration |
 
 **Default when in doubt: one tier up.** If PM is unsure between S and M, assign M.
 
@@ -128,21 +157,22 @@ PM writes the tier into the PROJECT_LEDGER.md task entry before AI Coder starts 
 
 ## GATES BY TIER
 
-| Gate | Name | Tier S | Tier M | Tier L |
-|------|------|--------|--------|--------|
-| **CI** | Build + Lint + Typecheck | ✅ Auto | ✅ Auto | ✅ Auto |
-| **G1** | Component Audit | ✅ | ✅ | ✅ |
-| **G3** | Blueprint & RFC | ❌ | ✅ | ✅ |
-| **G4** | Implementation Integrity | ✅ | ✅ | ✅ |
-| **G5** | Zero Lint Suppression | ✅ | ✅ | ✅ |
-| **G6** | Tests | ❌ | ✅ | ✅ |
-| **G7** | Security + Env Parity | ❌ | ❌ | ✅ |
-| **G13** | Browser Walkthrough (Preview) | ✅ | ✅ | ✅ |
-| **G14** | PM APPROVED | ✅ | ✅ | ✅ |
-| **G11** | Production Verification | ✅ | ✅ | ✅ |
-| **G12** | Documentation | ❌ | ✅ | ✅ |
+| Gate    | Name                          | Tier S  | Tier M  | Tier L  |
+| ------- | ----------------------------- | ------- | ------- | ------- |
+| **CI**  | Build + Lint + Typecheck      | ✅ Auto | ✅ Auto | ✅ Auto |
+| **G1**  | Component Audit               | ✅      | ✅      | ✅      |
+| **G3**  | Blueprint & RFC               | ❌      | ✅      | ✅      |
+| **G4**  | Implementation Integrity      | ✅      | ✅      | ✅      |
+| **G5**  | Zero Lint Suppression         | ✅      | ✅      | ✅      |
+| **G6**  | Tests                         | ❌      | ✅      | ✅      |
+| **G7**  | Security + Env Parity         | ❌      | ❌      | ✅      |
+| **G13** | Browser Walkthrough (Preview) | ✅      | ✅      | ✅      |
+| **G14** | PM APPROVED                   | ✅      | ✅      | ✅      |
+| **G11** | Production Verification       | ✅      | ✅      | ✅      |
+| **G12** | Documentation                 | ❌      | ✅      | ✅      |
 
 **Total gates per tier:**
+
 - Tier S: 7 gates (CI + G1 + G4 + G5 + G13 + G14 + G11)
 - Tier M: 10 gates (CI + G1 + G3 + G4 + G5 + G6 + G13 + G14 + G11 + G12)
 - Tier L: 11 gates (all of M + G7)
@@ -175,6 +205,7 @@ Compares `.env.example` keys against available environment variables. If a key i
 **Required before writing a single line of code.**
 
 AI Coder must:
+
 1. List all existing components relevant to the task area
 2. Run a codebase search proving the feature/component does not already exist
 3. Identify which files will be changed and why
@@ -184,6 +215,7 @@ AI Coder must:
 **Minimum for Tier S:** Codebase search result documented in the commit message or PR description.
 
 **Codebase search format:**
+
 ```
 $ grep -r "ComponentName" src/
 (no results — safe to build)
@@ -206,20 +238,25 @@ PM must write `APPROVED` in the implementation plan before AI Coder writes code.
 
 ```markdown
 ## Problem Statement
+
 [What problem are we solving?]
 
 ## Proposed Solution
+
 [What are we building? Which files change and why?]
 
 ## Design Reference
+
 [REQUIRED IF ANY UI CHANGES — describe layout or link to design]
 [Example: "Follows existing DashboardNav pattern — horizontal sidebar link"]
 
 ## Success Metric
+
 [Single signal that proves this works]
 [Example: "/database loads 50 companies for authenticated users"]
 
 ## Failure Signal
+
 [Error/log that indicates this is broken]
 [Example: "HTTP 500 on GET /database" or blank page with no console error]
 
@@ -253,6 +290,7 @@ This is verified by CI (lint step catches most cases) and manually by PM during 
 **Purpose:** Regression protection for non-trivial changes.
 
 Tests are required for:
+
 - New API routes: at minimum one integration test verifying the route returns correct status
 - New business logic: unit tests covering main code paths
 - New components with user interaction: render tests verifying key behaviour
@@ -260,6 +298,7 @@ Tests are required for:
 **No coverage percentage requirement.** Tests must be real — not 100% mocked externals. At least one test per external integration must verify real configuration (not just mock it).
 
 **Not required for:**
+
 - Pure layout/styling components with no logic
 - Tier S changes
 
@@ -289,6 +328,7 @@ AI Coder reports G7 results in the PR description.
 Localhost has local `.env.local` that differs from what Vercel deploys. Preview uses the exact same environment as production. This is the only way to catch missing env vars before merge.
 
 **Iron Rule applies here without exception.** If any browser tool step (screenshot, resize, console capture) returns an error:
+
 - Stop immediately.
 - Do NOT file any G13 report.
 - Post the verbatim error to the ledger.
@@ -297,6 +337,7 @@ Localhost has local `.env.local` that differs from what Vercel deploys. Preview 
 **Evidence requirements (TWO things, both required):**
 
 **1. Report file** — `docs/reports/browser-test-ENTRY-XXX.md`:
+
 ```
 URL tested: https://bmn-site-git-feat-BRANCH-HASH.vercel.app  (NOT localhost)
 Breakpoints: 375px (mobile) + 1280px (desktop)
@@ -306,13 +347,16 @@ Matches design: YES / NO + reason  (if G3 has Design Reference)
 ```
 
 **2. Screenshots embedded in PR body** — Required inline in the PR description:
+
 ```markdown
 ## G13 Screenshots
 
 ### 375px Mobile
+
 ![mobile screenshot](URL or relative path)
 
 ### 1280px Desktop
+
 ![desktop screenshot](URL or relative path)
 ```
 
@@ -327,6 +371,7 @@ If the preview URL doesn't exist yet: push the branch, wait for Vercel to build 
 **Purpose:** Prevents self-merge. Ensures PM human eyes on every merge.
 
 AI Coder posts a **Code Review Summary** to the PR body:
+
 ```markdown
 ## Code Review Summary
 
@@ -334,18 +379,22 @@ CI Run: <GitHub Actions run URL> ✅ passed
 Branch base: branched from `main` at SHA <output of `git rev-parse origin/main` before branch was created>
 
 ### Files Changed
+
 - `src/components/X.tsx` — reason
 
 ### Files NOT Changed
+
 - `src/components/Y.tsx` — intentionally unchanged because [reason]
 
 ### Scope vs Plan
+
 All changes match approved G3 plan. / Deviations: [list any]
 ```
 
 **CI Run and Branch Base are required fields. A PR submitted without them is returned immediately — PM will not read the code.**
 
 PM reviews in this order:
+
 1. **CI run link first** — open it, confirm it shows ✅ passed for the correct commit SHA. If CI hasn't run or shows failure, stop. Return PR to AI Coder. Do not read the code.
 2. The Code Review Summary
 3. The code diff
@@ -375,6 +424,7 @@ Never continue working on a branch that already has old merged work on it. A bra
 **Purpose:** Confirm the feature works in production after merge.
 
 After merge and deploy:
+
 1. Production URL returns HTTP 200
 2. Mobile (375px) + desktop (1280px) screenshots showing the feature works
 3. G3 Success Metric confirmed: the metric is observable and passing
@@ -389,6 +439,7 @@ Report filed in `docs/reports/production-verification-ENTRY-XXX.md`.
 **Purpose:** Future maintainers (including future AI Coders) can understand what was built and why.
 
 Required sections in `docs/walkthroughs/walkthrough-ENTRY-XXX.md`:
+
 - What changed
 - Why it was changed
 - How to verify it's working
@@ -398,13 +449,13 @@ Required sections in `docs/walkthroughs/walkthrough-ENTRY-XXX.md`:
 
 ## WHAT WAS REMOVED AND WHY
 
-| Removed | Reason |
-|---------|--------|
-| **G0 — .env-validated.log ceremony** | Replaced by automated env parity check in CI. Mechanical enforcement beats manual ceremony. |
-| **G2 — Web research (3+ searches, 1000 words)** | Never caught an incident. Codebase search (the only useful part) is now in G1. External research is AI Coder's baseline competence, not a gate. |
-| **G8 — 80% test coverage** | Unmaintainable at startup velocity. Produces test theater — tests written to hit a number, not to catch bugs. Replaced by G6 which requires real tests for real paths. |
-| **G9 — Axe scan per PR** | Run quarterly as a team-wide audit, not per PR. A nav link following existing accessible patterns does not need an axe scan. |
-| **G10 — Lighthouse per PR** | Run monthly as a team-wide audit. Lighthouse score doesn't change per nav link. Per-PR Lighthouse is noise. |
+| Removed                                         | Reason                                                                                                                                                                 |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **G0 — .env-validated.log ceremony**            | Replaced by automated env parity check in CI. Mechanical enforcement beats manual ceremony.                                                                            |
+| **G2 — Web research (3+ searches, 1000 words)** | Never caught an incident. Codebase search (the only useful part) is now in G1. External research is AI Coder's baseline competence, not a gate.                        |
+| **G8 — 80% test coverage**                      | Unmaintainable at startup velocity. Produces test theater — tests written to hit a number, not to catch bugs. Replaced by G6 which requires real tests for real paths. |
+| **G9 — Axe scan per PR**                        | Run quarterly as a team-wide audit, not per PR. A nav link following existing accessible patterns does not need an axe scan.                                           |
+| **G10 — Lighthouse per PR**                     | Run monthly as a team-wide audit. Lighthouse score doesn't change per nav link. Per-PR Lighthouse is noise.                                                            |
 
 ---
 
@@ -412,17 +463,17 @@ Required sections in `docs/walkthroughs/walkthrough-ENTRY-XXX.md`:
 
 These mechanisms are PM-controlled. AI Coder cannot bypass them.
 
-| Mechanism | What It Blocks |
-|-----------|---------------|
-| GitHub Actions CI (build + lint + tsc) | Broken builds, lint errors, TypeScript errors merging to main |
-| CI env parity check | Missing env vars shipping to production (INCIDENT-001 class) |
-| Branch protection: require CI pass | Any PR that fails CI cannot be merged |
-| Branch protection: require 1 PR review | AI Coder cannot merge its own PRs (self-merge incident) |
-| G13 requires Vercel preview URL | Using localhost to hide env var issues (INCIDENT-001) |
-| G13 screenshots in PR body | PM cannot verify G13 was run honestly without inline evidence |
-| G14 PM APPROVED comment | Work shipping without PM human review |
-| Iron Rule: stop on error | Self-recovery over tool failures (INCIDENT-003) |
-| G14 requires CI run URL in PR body | PM starting code review before CI has run or passed (INCIDENT-004) |
+| Mechanism                                              | What It Blocks                                                                     |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| GitHub Actions CI (build + lint + tsc)                 | Broken builds, lint errors, TypeScript errors merging to main                      |
+| CI env parity check                                    | Missing env vars shipping to production (INCIDENT-001 class)                       |
+| Branch protection: require CI pass                     | Any PR that fails CI cannot be merged                                              |
+| Branch protection: require 1 PR review                 | AI Coder cannot merge its own PRs (self-merge incident)                            |
+| G13 requires Vercel preview URL                        | Using localhost to hide env var issues (INCIDENT-001)                              |
+| G13 screenshots in PR body                             | PM cannot verify G13 was run honestly without inline evidence                      |
+| G14 PM APPROVED comment                                | Work shipping without PM human review                                              |
+| Iron Rule: stop on error                               | Self-recovery over tool failures (INCIDENT-003)                                    |
+| G14 requires CI run URL in PR body                     | PM starting code review before CI has run or passed (INCIDENT-004)                 |
 | Branch hygiene rule: branch from current `origin/main` | Stale branches with pre-merged commits and runtime artifacts in PRs (INCIDENT-004) |
 
 ---
